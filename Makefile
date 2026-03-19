@@ -1,2 +1,2 @@
 all:
-	gcc ./main.c -o copyDemon
+	gcc ./main.c -o Orthus
