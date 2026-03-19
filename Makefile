@@ -1,2 +1,2 @@
 all:
-	gcc ./main.c -o Orthus
+	gcc ./*.c -o Orthus
