@@ -3,28 +3,35 @@
 #include <syslog.h>
 #include <string.h>
 
-const char *  getLogType(char * typeOfLog, enum logType type)
+void removeNewline(char *s) {
+    s[strcspn(s, "\n")] = '\0';
+}
+void addLogType(char * messgage, enum logType type)
 {
     switch (type)
     {
-    case ASLEEP: typeOfLog = "FALLING ASLEEP:"; break;
-    case AWOKE: typeOfLog = "AWOKE FROM SLEEP:"; break;
-    case COPIED: typeOfLog = "COPIED FILE:"; break;
-    case DELETED: typeOfLog = "DELETED FILE:"; break;
+    case ASLEEP:  strcat(messgage, "FALLING ASLEEP:"); break;
+    case AWOKE: strcat(messgage, "AWOKE FROM SLEEP:"); break;
+    case COPIED: strcat(messgage, "COPIED FILE:"); break;
+    case DELETED: strcat(messgage, "DELETED FILE:"); break;
     default: break;
     }
 }
-void addTimeToString(char * message)
+void addTime(char * message)
 {
     time_t currentTime;
     time(&currentTime);
-    char * timeString;
+    char * timeString = ctime(&currentTime);
+    removeNewline(timeString);
+    strcat(message, timeString);
+    strcat(message,":");
 }
 void completeMessage(char * message, char * additionalInformation, enum logType type)
 {
     message[0] = '\0';
-    char * typeOfLog;
-    getLogType(typeOfLog, type);
+    addLogType(message, type);
+    addTime(message);
+    strcat(message, additionalInformation);
 }
 
 void systemLog(char * additionalInformation, enum logType type)
