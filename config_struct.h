@@ -10,5 +10,14 @@ struct configStruct
     int minSizeToBeBig;
 };
 
+enum options
+{
+    SOURCE,
+    TARGET,
+    FREQUENCY,
+    RECURSIVE,
+    MINSIZE,
+    ERROR
+};  
 
 #endif
