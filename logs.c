@@ -2,6 +2,7 @@
 #include <time.h>
 #include <syslog.h>
 #include <string.h>
+
 const char *  getLogType(char * typeOfLog, enum logType type)
 {
     switch (type)
@@ -13,11 +14,11 @@ const char *  getLogType(char * typeOfLog, enum logType type)
     default: break;
     }
 }
-void addTimeToString(char * message);
+void addTimeToString(char * message)
 {
     time_t currentTime;
     time(&currentTime);
-    char * timeString = 
+    char * timeString;
 }
 void completeMessage(char * message, char * additionalInformation, enum logType type)
 {
