@@ -12,36 +12,46 @@ bool is_dir(const char *path) {
 void daemonize() {
 
 }
-
-enum options recognizeArgumentType(char * arg)
+bool setSource(struct configStruct * configurations, const char * path)
 {
-	if(strcmp(arg, "-s") == 0) return SOURCE;
-	else if (strcmp(arg, "-t")) return TARGET;
-	else if (strcmp(arg, "-f")) return FREQUENCY;
-	else if (strcmp(arg, "-R")) return RECURSIVE;
-	else if (strcmp(arg, "-m")) return MINSIZE;
-	else return ERROR;
+	if(!is_dir(path)) return false;
+	strcpy(configurations->sourceDir, path);
 }
-struct configStruct readArguments(int argc, char * argv[])
+bool setTarget(struct configStruct * configurations, const char * path)
+{
+	if(!is_dir(path)) return false;
+	strcpy(configurations->targetDir, path);
+}
+void giveHelp()
+{
+
+}
+bool readArguments(struct configStruct * configurations, int argc, char * argv[])
 {
 	int i = 1;
 	struct configStruct configurations;
 	while (i < argc)
 	{
-		switch (recognizeArgumentType(argv[i]))
+		switch (argv[i][1])
 		{
-		case SOURCE: 
-			if(is_dir(argv[i+1])) strcpy(argv[i+1], configurations.sourceDir);
-			else ;
-			break;
-		case TARGET:
-			break;
+		case 's' : if(!setSource(&configurations, argv[i+1]) || strlen(argv[i]) > 2) 
+			return false; i += 2; break;
+		case 't' : 
+			if(!setTarget(&configurations, argv[i+1]) || strlen(argv[i]) > 2)
+				return false; 
+			i += 2; break;
+		case 'h' : giveHelp(); return false;
+		case 'R' : 
+			if(strlen(argv[i]) > 2);
+				return false;
+			configurations->recursive = true; i ++; break;
+		case 'm':;
 		default:
 			break;
 		}
 	}
-	
 }
+
 /*
 Potrzebujemy następujących funkcjonalności określanych argumentami funckcji main()
 - target directory
