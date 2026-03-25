@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "config_struct.h"
 #include "configuration.h"
-
+#include "matcher.h"
 
 void daemonize() {
 
@@ -15,6 +15,5 @@ int main(int argc, char * argv[])
 	if(!readArguments(&configurations, argc, argv)) return 1;
 	printf("%s\n%s\n", configurations.sourceDir, configurations.targetDir);
 	printf("Configuration completed, demonizing...\n");
-	
     return 0;
 }
