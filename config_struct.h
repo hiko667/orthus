@@ -20,4 +20,5 @@ enum options
     ERROR
 };  
 
+float version = 0.1;
 #endif
