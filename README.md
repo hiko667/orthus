@@ -1,14 +1,31 @@
-/*
-Potrzebujemy następujących funkcjonalności określanych argumentami funckcji main()
-- target directory
-- src drectory
-- częstotliwośc wybudzania
-- opcje --help; bo tak i to cool; opcjonalnie flagę -h
-- ten -R, aka żeby robić rekursywnie
-- argument do granicy rozdzielającej pliki
-proponowana struktura wywołania
-orthus -s ./source -t ./target -f 5 -R -m 5000
-gdzie po -s następuje źródło, po -t cel, po -f co ile minut wybudzać
-po -R nic, po -m ile bajtów to granica
 
-*/
+# Orthus
+
+Linux shell deamon created to synchronize two directories with each other
+
+
+
+
+## Deployment
+
+To deploy Orthus run the following command:
+
+```bash
+  Orthus -s Source/Dir/Path - t Target/Dir/Path
+```
+Where Source/Dir/Path is a path to your source directory, and Target/Dir/Path is a path to your target directory
+To set the frequency of daemon waking up, use the -f flag:
+
+```bash
+  Orthus -s ./a - t ./b -f 5
+```
+followed by the frequency expressed in minutes
+To see available options run:
+```bash
+  Orthus -h
+```
+To make the daemon copy directories present in the source directory as well (Recursively) run:
+```bash
+  Orthus -s ./a -t ./b -R
+```
+
