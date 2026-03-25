@@ -4,5 +4,6 @@
 #include <sys/stat.h>
 
 bool is_dir(const char *path);
+int countFiles(const char * path);
 
 #endif 

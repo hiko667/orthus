@@ -15,5 +15,6 @@ int main(int argc, char * argv[])
 	if(!readArguments(&configurations, argc, argv)) return 1;
 	printf("%s\n%s\n", configurations.sourceDir, configurations.targetDir);
 	printf("Configuration completed, demonizing...\n");
+	daemonize();
     return 0;
 }
