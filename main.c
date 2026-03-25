@@ -1,87 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
-#include <string.h>
 #include "config_struct.h"
+#include "configuration.h"
 
-
-bool is_dir(const char *path) {
-	struct stat st;
-	return (stat(path, &st) == 0) && S_ISDIR(st.st_mode);
-}
 
 void daemonize() {
 
 }
-bool setSource(struct configStruct * configurations, const char * path)
-{
-	if(!is_dir(path)) 
-	{
-		printf("Invallid source directory!\n");
-		return false;
-	}
-	strcpy(configurations->sourceDir, path);
-}
-bool setTarget(struct configStruct * configurations, const char * path)
-{
-	if(!is_dir(path)) return false;
-	strcpy(configurations->targetDir, path);
-}
-void giveHelp()
-{
-	printf("Orthus version %f\n", version);
-	printf("Use following flags for configs: \n");
-	printf("-h -- help\n");
-	printf("-s -- set up source directory\n");
-	printf("-t -- set up target directory\n");
-	printf("-R -- use recursion\n");
-	printf("-m to set byte limit on big files\n");
-}
-bool readArguments(struct configStruct * configurations, int argc, char * argv[])
-{
-	int i = 1;
-	while (i < argc)
-	{
-		switch (argv[i][1])
-		{
-			case 's' : if(!setSource(configurations, argv[i+1]) || strlen(argv[i]) > 2) 
-				return false; i += 2; break;
-			case 't' : 
-				if(!setTarget(configurations, argv[i+1]) || strlen(argv[i]) > 2)
-					return false; 
-				i += 2; break;
-			case 'h' : giveHelp(); return false;
-			case 'R' : 
-				if(strlen(argv[i]) > 2);
-					return false;
-				configurations->recursive = true; i ++; break;
-			case 'm':;
-			default:
-				break;
-		}
-	}
-	return true;
-}
 
-/*
-Potrzebujemy następujących funkcjonalności określanych argumentami funckcji main()
-- target directory
-- src drectory
-- częstotliwośc wybudzania
-- opcje --help; bo tak i to cool; opcjonalnie flagę -h
-- ten -R, aka żeby robić rekursywnie
-- argument do granicy rozdzielającej pliki
-proponowana struktura wywołania
-orthus -s ./source -t ./target -f 5 -R -m 5000
-gdzie po -s następuje źródło, po -t cel, po -f co ile minut wybudzać
-po -R nic, po -m ile bajtów to granica
 
-*/
 int main(int argc, char * argv[])
 {
 	struct configStruct * configurations;
 	if(!readArguments(configurations, argc, argv)) return 1;
-	printf("Cinfiguration completed, demonizing...\n");
+	printf("Configuration completed, demonizing...\n");
 	printf("%s", configurations->sourceDir);
 
     return 0;
