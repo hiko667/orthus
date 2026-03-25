@@ -41,12 +41,17 @@ bool readArguments(struct configStruct * configurations, int argc, char * argv[]
 				if(!setTarget(configurations, argv[i+1]) || strlen(argv[i]) > 2)
 					return false; 
 				i += 2; break;
+			case 'f':
+				if(strlen(argv[i]) > 2 || atoi(argv[i+1]) < 0) return false;
+				configurations->awakeningFrequency = atoi(argv[i+1]);
 			case 'h' : giveHelp(); return false;
 			case 'R' : 
-				if(strlen(argv[i]) > 2);
-					return false;
+				if(strlen(argv[i]) > 2) return false;
 				configurations->recursive = true; i ++; break;
-			case 'm':;
+			case 'm':
+				if(atoi(argv[i+1]) < 0 || strlen(argv[i]) >2) return false;
+				configurations->minSizeToBeBig = atoi(argv[i+1]);
+
 			default:
 				break;
 		}
