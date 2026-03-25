@@ -11,10 +11,10 @@ void daemonize() {
 
 int main(int argc, char * argv[])
 {
-	struct configStruct * configurations;
-	if(!readArguments(configurations, argc, argv)) return 1;
+	struct configStruct configurations = {0};
+	if(!readArguments(&configurations, argc, argv)) return 1;
+	printf("%s\n%s\n", configurations.sourceDir, configurations.targetDir);
 	printf("Configuration completed, demonizing...\n");
-	printf("%s", configurations->sourceDir);
-
+	
     return 0;
 }

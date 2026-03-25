@@ -8,15 +8,21 @@ bool setSource(struct configStruct * configurations, const char * path)
 {
 	if(!is_dir(path)) 
 	{
-		printf("Invallid source directory!\n");
+		printf("Invalid source directory!\n");
 		return false;
 	}
 	strcpy(configurations->sourceDir, path);
+	return true;
 }
 bool setTarget(struct configStruct * configurations, const char * path)
 {
-	if(!is_dir(path)) return false;
+	if(!is_dir(path))
+	{
+		printf("Invalid target directory!\n");
+		return false;
+	}
 	strcpy(configurations->targetDir, path);
+	return true;
 }
 void giveHelp()
 {
@@ -34,26 +40,36 @@ bool readArguments(struct configStruct * configurations, int argc, char * argv[]
 	int i = 1;
 	while (i < argc)
 	{
+		if (argv[i][0] != '-') 
+		{
+            i++; 
+            continue;
+        }
 		switch (argv[i][1])
 		{
-			case 's' : if(!setSource(configurations, argv[i+1]) || strlen(argv[i]) > 2) 
-				return false; i += 2; break;
+			case 's' :
+				if(i + 1 >= argc || !setSource(configurations, argv[i+1]) || strlen(argv[i]) > 2)
+					return false; i += 2; break;
 			case 't' : 
-				if(!setTarget(configurations, argv[i+1]) || strlen(argv[i]) > 2)
+				if(i + 1 >= argc || !setTarget(configurations, argv[i+1]) || strlen(argv[i]) > 2)
 					return false; 
 				i += 2; break;
 			case 'f':
-				if(strlen(argv[i]) > 2 || atoi(argv[i+1]) < 0) return false;
+				if(i + 1 >= argc ||strlen(argv[i]) > 2 || atoi(argv[i+1]) < 0) return false;
 				configurations->awakeningFrequency = atoi(argv[i+1]);
+				i += 2;
+				break;
 			case 'h' : giveHelp(); return false;
 			case 'R' : 
 				if(strlen(argv[i]) > 2) return false;
 				configurations->recursive = true; i ++; break;
 			case 'm':
-				if(atoi(argv[i+1]) < 0 || strlen(argv[i]) >2) return false;
+				if(i + 1 >= argc || atoi( argv[i+1]) < 0 || strlen(argv[i]) >2) return false;
 				configurations->minSizeToBeBig = atoi(argv[i+1]);
+				i+=2; break;
 
 			default:
+				i++;
 				break;
 		}
 	}

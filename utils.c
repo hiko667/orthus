@@ -1,5 +1,5 @@
 #include "utils.h"
-
+#include <stdio.h>
 bool is_dir(const char *path) 
 {
 	struct stat st;
