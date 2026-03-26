@@ -12,6 +12,8 @@ void daemonize() {
 int main(int argc, char * argv[])
 {
 	struct configStruct configurations = {0};
+	configurations.recursive = false;
+	configurations.awakeningFrequency = 5.0;
 	if(!readArguments(&configurations, argc, argv)) return 1;
 	printf("%s\n%s\n", configurations.sourceDir, configurations.targetDir);
 	printf("Configuration completed, demonizing...\n");

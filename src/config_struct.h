@@ -1,6 +1,7 @@
 #ifndef CONFIG_STRUCT_H
 #define CONFIG_STRUCT_H
 #include <stdbool.h>
+
 struct configStruct
 {
     char sourceDir[128];
@@ -10,13 +11,4 @@ struct configStruct
     int minSizeToBeBig;
 };
 
-enum options
-{
-    SOURCE,
-    TARGET,
-    FREQUENCY,
-    RECURSIVE,
-    MINSIZE,
-    ERROR
-};  
 #endif

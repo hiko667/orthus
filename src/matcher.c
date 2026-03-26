@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "utils.h"
 #include <string.h>
+#include "file_struct.h"
 char ** getFileList(const char * path)
 {
     int countedFiles = countFiles(path);
