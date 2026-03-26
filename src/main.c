@@ -1,13 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include "utils.h"
 #include "config_struct.h"
 #include "configuration.h"
 #include "matcher.h"
-
-void daemonize() {
-
-}
-
 
 int main(int argc, char * argv[])
 {
@@ -15,6 +12,14 @@ int main(int argc, char * argv[])
 	if(!readArguments(&configurations, argc, argv)) return 1;
 	printf("%s\n%s\n", configurations.sourceDir, configurations.targetDir);
 	printf("Configuration completed, demonizing...\n");
-	daemonize();
+	if (daemonize_process() != 0) {
+		return -1;
+	}
+
+	while (1) {
+		match(&configurations);
+		sleep(configurations.awakeningFrequency*60);
+	}
+
     return 0;
 }
