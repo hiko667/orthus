@@ -3,6 +3,6 @@
 #include <time.h>
 struct fileStruct{
     char * fileName[256];
-    timespec lastModified;
+    struct timespec lastModified;
 };
 #endif

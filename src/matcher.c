@@ -6,28 +6,29 @@
 #include "utils.h"
 #include <string.h>
 #include "file_struct.h"
-char ** getFileList(const char * path)
+struct fileStruct ** getFileList(const char * path)
 {
     int countedFiles = countFiles(path);
     DIR * dir = opendir(path);
     if(!dir || countedFiles == -1) return NULL;
-    char ** files = malloc(sizeof(char*) * countedFiles);
+    struct fileStruct ** files = malloc(sizeof(struct fileStruct *) * countedFiles);
+    for(int i = 0; i<countedFiles; i++) files[i] = malloc(sizeof(struct fileStruct *));
     struct dirent * entry;
     int count;
     while((entry = readdir(dir)) != NULL)
     {
         if(entry->d_type = DT_REG)
         {
-            files[count] = strdup(entry->d_name);
+            files[count]->fileName = strdup(entry->d_name);
             count++;
         }
     }
     closedir(dir);
     return files;
 }
-void freeFiles(char ** files)
+void freeFiles(struct fileStruct ** files)
 {
-    int count = sizeof(files) / sizeof(char*);
+    int count = sizeof(files) / sizeof(struct fileStruct*);
     for(int i = 0; i<count; i++) free(files[i]);
     free(files);
 }
