@@ -4,8 +4,8 @@
 
 struct configStruct
 {
-    char sourceDir[128];
-    char targetDir[128];
+    char * sourceDir;
+    char * targetDir;
     int awakeningFrequency; 
     bool recursive;
     int minSizeToBeBig;

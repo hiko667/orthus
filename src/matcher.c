@@ -12,14 +12,17 @@ struct fileStruct ** getFileList(const char * path)
     DIR * dir = opendir(path);
     if(!dir || countedFiles == -1) return NULL;
     struct fileStruct ** files = malloc(sizeof(struct fileStruct *) * countedFiles);
-    for(int i = 0; i<countedFiles; i++) files[i] = malloc(sizeof(struct fileStruct *));
+    for(int i = 0; i<countedFiles; i++) files[i] = malloc(sizeof(struct fileStruct));
     struct dirent * entry;
+    struct stat st;
     int count;
     while((entry = readdir(dir)) != NULL)
     {
-        if(entry->d_type = DT_REG)
+        if(entry->d_type == DT_REG)
         {
             files[count]->fileName = strdup(entry->d_name);
+            stat(entry->d_name, &st);
+            files[count]->lastModified = st.st_mtim;
             count++;
         }
     }
