@@ -29,13 +29,22 @@ struct fileStruct ** getFileList(const char * path)
     closedir(dir);
     return files;
 }
+
+char ** getPathsToCopy(struct configStruct configurations)
+{
+    struct fileStruct ** sourceFiles = getFileList(configurations.sourceDir);
+    struct fileStruct ** targetFiles = getFileList(configurations.sourceDir);
+    
+}
+
 void freeFiles(struct fileStruct ** files)
 {
     int count = sizeof(files) / sizeof(struct fileStruct*);
     for(int i = 0; i<count; i++) free(files[i]);
     free(files);
 }
+
 bool match(struct configStruct * configurations)
 {
-    
+
 }
