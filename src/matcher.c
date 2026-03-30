@@ -7,6 +7,20 @@
 #include <string.h>
 #include "file_struct.h"
 
+bool needsCopy(struct fileStruct * source, struct fileStruct ** target, int targetCount)
+{
+    for (int i = 0; i < targetCount; i++) 
+    {
+        if (strcmp(source->fileName, target[i]->fileName) == 0) 
+        {
+            if (source->lastModified.tv_sec > target[i]->lastModified.tv_sec) return true;
+            if (source->lastModified.tv_sec == target[i]->lastModified.tv_sec &&
+                source->lastModified.tv_nsec > target[i]->lastModified.tv_nsec) return true;
+            return false;
+        }
+    }
+    return true;
+}
 struct fileStruct ** getFileList(const char * path, int * counted)
 {
     int countedFiles = countFiles(path);
@@ -34,12 +48,12 @@ struct fileStruct ** getFileList(const char * path, int * counted)
     return files;
 }
 
-char ** getPathsToCopy(struct configStruct configurations)
+char ** getPathsToCopy(struct configStruct configurations, int * count)
 {
     int sourceCount, targetCount;
     struct fileStruct ** sourceFiles = getFileList(configurations.sourceDir, &sourceCount);
     struct fileStruct ** targetFiles = getFileList(configurations.targetDir, &targetCount);
-
+    
     freeFiles(sourceFiles, sourceCount);
     freeFiles(targetFiles, targetCount);
 }
