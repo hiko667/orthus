@@ -6,20 +6,24 @@
 #include "utils.h"
 #include <string.h>
 #include "file_struct.h"
-struct fileStruct ** getFileList(const char * path)
+
+struct fileStruct ** getFileList(const char * path, int * counted)
 {
     int countedFiles = countFiles(path);
+    * counted = countedFiles;
     DIR * dir = opendir(path);
     if(!dir || countedFiles == -1) return NULL;
     struct fileStruct ** files = malloc(sizeof(struct fileStruct *) * countedFiles);
     for(int i = 0; i<countedFiles; i++) files[i] = malloc(sizeof(struct fileStruct));
     struct dirent * entry;
     struct stat st;
-    int count;
+    int count = 0;
     while((entry = readdir(dir)) != NULL)
     {
         if(entry->d_type == DT_REG)
         {
+            char fullPath[1024];
+            snprintf(fullPath, sizeof(fullPath), "%s/%s", path, entry->d_name);
             files[count]->fileName = strdup(entry->d_name);
             stat(entry->d_name, &st);
             files[count]->lastModified = st.st_mtim;
@@ -32,15 +36,17 @@ struct fileStruct ** getFileList(const char * path)
 
 char ** getPathsToCopy(struct configStruct configurations)
 {
-    struct fileStruct ** sourceFiles = getFileList(configurations.sourceDir);
-    struct fileStruct ** targetFiles = getFileList(configurations.sourceDir);
-    
+    int sourceCount, targetCount;
+    struct fileStruct ** sourceFiles = getFileList(configurations.sourceDir, &sourceCount);
+    struct fileStruct ** targetFiles = getFileList(configurations.targetDir, &targetCount);
+
+    freeFiles(sourceFiles, sourceCount);
+    freeFiles(targetFiles, targetCount);
 }
 
-void freeFiles(struct fileStruct ** files)
+void freeFiles(struct fileStruct ** files, int howMany)
 {
-    int count = sizeof(files) / sizeof(struct fileStruct*);
-    for(int i = 0; i<count; i++) free(files[i]);
+    for(int i = 0; i<howMany; i++) free(files[i]);
     free(files);
 }
 
