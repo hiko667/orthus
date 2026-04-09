@@ -1,22 +1,14 @@
 #ifndef CONFIG_STRUCT_H
 #define CONFIG_STRUCT_H
 #include <stdbool.h>
+
 struct configStruct
 {
-    char sourceDir[128];
-    char targetDir[128];
+    char * sourceDir;
+    char * targetDir;
     int awakeningFrequency; 
     bool recursive;
     int minSizeToBeBig;
 };
 
-enum options
-{
-    SOURCE,
-    TARGET,
-    FREQUENCY,
-    RECURSIVE,
-    MINSIZE,
-    ERROR
-};  
 #endif
