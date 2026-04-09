@@ -6,8 +6,8 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
 add_executable(Orthus
-        main.c
-        logs.c
+        src/main.c
+        src/logs.c
 )
 
 target_include_directories(Orthus PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

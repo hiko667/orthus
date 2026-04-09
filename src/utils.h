@@ -5,5 +5,5 @@
 
 bool is_dir(const char *path);
 int countFiles(const char * path);
-
+int daemonize_process();
 #endif 
