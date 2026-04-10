@@ -7,6 +7,9 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 add_executable(Orthus
         src/main.c
+        src/utils.c
+        src/configuration.c
+        src/matcher.c
         src/logs.c
 )
 
