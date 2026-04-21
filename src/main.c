@@ -5,13 +5,14 @@
 #include "config_struct.h"
 #include "configuration.h"
 #include "matcher.h"
+#include "logs.h"
 
 int main(int argc, char * argv[])
 {
 	struct configStruct configurations = {0};
-	configurations.recursive = false;
-	configurations.awakeningFrequency = 5.0;
+	configurations.awakeningFrequency = 5;
 	if(!readArguments(&configurations, argc, argv)) return 1;
+
 	printf("%s\n%s\n", configurations.sourceDir, configurations.targetDir);
 	printf("Configuration completed, demonizing...\n");
 	if (daemonize_process() != 0) {
@@ -20,7 +21,9 @@ int main(int argc, char * argv[])
 
 	while (1) {
 		match(&configurations);
-		sleep(configurations.awakeningFrequency*60);
+		systemLog("Daemon goes to sleep.", ASLEEP);
+		sleep(configurations.awakeningFrequency * 60);
+		systemLog("Daemon wakes up.", AWOKE);
 	}
 
     return 0;

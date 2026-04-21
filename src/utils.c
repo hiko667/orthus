@@ -7,6 +7,19 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <string.h>
+#include <utime.h>
+
+char *build_path(const char *dir, const char *name)
+{
+	size_t len = strlen(dir) + strlen(name) + 2;
+	char *path = malloc(len);
+	if (!path)
+		return NULL;
+
+	snprintf(path, len, "%s/%s", dir, name);
+	return path;
+}
 
 bool is_dir(const char *path) 					//  I
 {												//  I
@@ -26,6 +39,63 @@ int countFiles(const char * path)						// I
     }
 	closedir(dir);
 	return count;
+}
+
+bool copy_file(const char *srcPath, const char *dstPath)
+{
+	int srcFd = open(srcPath, O_RDONLY);
+	if (srcFd < 0)
+		return false;
+
+	int dstFd = open(dstPath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (dstFd < 0)
+	{
+		close(srcFd);
+		return false;
+	}
+
+	char buffer[8192];
+	ssize_t bytesRead;
+	while ((bytesRead = read(srcFd, buffer, sizeof(buffer))) > 0)
+	{
+		ssize_t written = 0;
+		while (written < bytesRead)
+		{
+			ssize_t w = write(dstFd, buffer + written, bytesRead - written);
+			if (w < 0)
+			{
+				close(srcFd);
+				close(dstFd);
+				return false;
+			}
+			written += w;
+		}
+	}
+
+	if (bytesRead < 0)
+	{
+		close(srcFd);
+		close(dstFd);
+		return false;
+	}
+
+	struct stat st;
+	if (stat(srcPath, &st) == 0)
+	{
+		struct utimbuf times;
+		times.actime = st.st_atime;
+		times.modtime = st.st_mtime;
+		utime(dstPath, &times);
+	}
+
+	close(srcFd);
+	close(dstFd);
+	return true;
+}
+
+bool remove_path(const char *path)
+{
+	return unlink(path) == 0;
 }
 
 int daemonize_process() {
