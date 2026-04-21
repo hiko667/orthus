@@ -21,16 +21,22 @@ static int name_exists_in_list(char **list, int count, const char *name)
 char ** getFileList(const char *path, int *outCount)
 {
     int countedFiles = countFiles(path);
+    * counted = countedFiles;
     DIR * dir = opendir(path);
     if(!dir || countedFiles == -1) return NULL;
-    char ** files = malloc(sizeof(char*) * countedFiles);
+    struct fileStruct ** files = malloc(sizeof(struct fileStruct *) * countedFiles);
+    for(int i = 0; i<countedFiles; i++) files[i] = malloc(sizeof(struct fileStruct));
     struct dirent * entry;
     int count=0;
     while((entry = readdir(dir)) != NULL)
     {
         if(entry->d_type == DT_REG)
         {
-            files[count] = strdup(entry->d_name);
+            char fullPath[1024];
+            snprintf(fullPath, sizeof(fullPath), "%s/%s", path, entry->d_name);
+            files[count]->fileName = strdup(entry->d_name);
+            stat(entry->d_name, &st);
+            files[count]->lastModified = st.st_mtim;
             count++;
         }
     }
