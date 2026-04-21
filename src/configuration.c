@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include "utils.h"
 
-#define VERSION 1.0 
+#define VERSION 1.0
 
 bool setSource(struct configStruct * configurations, const char * path)
 {
-	if(!is_dir(path)) 
+	if(!is_dir(path))
 	{
 		printf("Invalid source directory!\n");
 		return false;
@@ -40,19 +40,20 @@ bool readArguments(struct configStruct * configurations, int argc, char * argv[]
 	int i = 1;
 	while (i < argc)
 	{
-		if (argv[i][0] != '-') 
+		if (argv[i][0] != '-')
 		{
-            i++; 
-            continue;
-        }
+			i++;
+			continue;
+		}
 		switch (argv[i][1])
 		{
 			case 's' :
-				if(i + 1 >= argc || !setSource(configurations, argv[i+1]) || strlen(argv[i]) > 2)
-					return false; i += 2; break;
-			case 't' : 
-				if(i + 1 >= argc || !setTarget(configurations, argv[i+1]) || strlen(argv[i]) > 2)
-					return false; 
+				if(i + 1 >= argc || strlen(argv[i]) > 2 || !setSource(configurations, argv[i+1]))
+					return false;
+				i += 2; break;
+			case 't' :
+				if(i + 1 >= argc || strlen(argv[i]) > 2 || !setTarget(configurations, argv[i+1]))
+					return false;
 				i += 2; break;
 			case 'f':
 				if(i + 1 >= argc ||strlen(argv[i]) > 2 || atoi(argv[i+1]) < 0) return false;
@@ -60,7 +61,7 @@ bool readArguments(struct configStruct * configurations, int argc, char * argv[]
 				i += 2;
 				break;
 			case 'h' : giveHelp(); return false;
-			case 'R' : 
+			case 'R' :
 				if(strlen(argv[i]) > 2) return false;
 				configurations->recursive = true; i ++; break;
 			case 'm':

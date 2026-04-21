@@ -23,6 +23,11 @@ char ** getFileList(const char *path, int *outCount)
     int countedFiles = countFiles(path);
     DIR * dir = opendir(path);
     if(!dir || countedFiles == -1) return NULL;
+    if(countedFiles == 0) {
+        closedir(dir);
+        *outCount = 0;
+        return NULL;
+    }
     char ** files = malloc(sizeof(char*) * countedFiles);
     struct dirent * entry;
     int count=0;
@@ -30,6 +35,7 @@ char ** getFileList(const char *path, int *outCount)
     {
         if(entry->d_type == DT_REG)
         {
+            if(entry->d_name[0] == '.') continue;
             files[count] = strdup(entry->d_name);
             count++;
         }
@@ -58,7 +64,7 @@ bool match(struct configStruct * configurations)
     char **sourceFiles = getFileList(configurations->sourceDir, &sourceCount);
     char **targetFiles = getFileList(configurations->targetDir, &targetCount);
 
-    if (!sourceFiles || !targetFiles || sourceCount < 0 || targetCount < 0)
+    if (sourceCount < 0 || targetCount < 0)
     {
         freeFiles(sourceFiles, sourceCount);
         freeFiles(targetFiles, targetCount);
