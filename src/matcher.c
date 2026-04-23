@@ -139,3 +139,11 @@ bool Match(struct configStruct * configurations)
     freeFiles(targetFiles, targetCount);
     return true;
 }
+
+bool RecursiveMatch(struct configStruct * configurations){
+
+    //sprawdza jakie są folder i przepuszcza ich ścieżke znowu przez RecursiveMatch w pętli for
+    //jeśli już nie ma folderów to przez zwykły Match
+    // no i będzie musaiło tworzyć te foldery co nie 
+    return true;
+}

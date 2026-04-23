@@ -20,12 +20,20 @@ int main(int argc, char * argv[])
 		return -1;
 	}
 
-	while (1) {
-		Match(&configurations);
+	while (1)
+	{
+		if (configurations.recursive == true)
+		{
+			RecursiveMatch(&configurations);
+		}
+		else
+		{
+			Match(&configurations);
+		}
 		SystemLog("Daemon goes to sleep.", ASLEEP);
 		sleep(configurations.awakeningFrequency * 60);
 		SystemLog("Daemon wakes up.", AWOKE);
 	}
 
-    return 0;
+	return 0;
 }

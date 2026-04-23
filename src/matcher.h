@@ -4,5 +4,6 @@
 #include "config_struct.h"
 
 bool Match(struct configStruct * configurations);
+bool RecursiveMatch(struct configStruct * configurations);
 
 #endif
