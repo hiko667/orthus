@@ -20,7 +20,7 @@ static int name_exists_in_list(char **list, int count, const char *name)
 
 char ** getFileList(const char *path, int *outCount)
 {
-    int countedFiles = countFiles(path);
+    int countedFiles = CountFiles(path);
     DIR * dir = opendir(path);
     if(!dir || countedFiles == -1) return NULL;
     if(countedFiles == 0) {
@@ -56,7 +56,7 @@ static void freeFiles(char **files, int count)
     free(files);
 }
 
-bool match(struct configStruct * configurations)
+bool Match(struct configStruct * configurations)
 {
     int sourceCount = 0;
     int targetCount = 0;
@@ -73,8 +73,8 @@ bool match(struct configStruct * configurations)
 
     for (int i = 0; i < sourceCount; i++)
     {
-        char *srcPath = build_path(configurations->sourceDir, sourceFiles[i]);
-        char *dstPath = build_path(configurations->targetDir, sourceFiles[i]);
+        char *srcPath = BuildPath(configurations->sourceDir, sourceFiles[i]);
+        char *dstPath = BuildPath(configurations->targetDir, sourceFiles[i]);
 
         if (!srcPath || !dstPath)
         {
@@ -108,9 +108,9 @@ bool match(struct configStruct * configurations)
 
         if (needCopy)
         {
-            if (copy_file(srcPath, dstPath))
+            if (CopyFile(srcPath, dstPath))
             {
-                systemLog(sourceFiles[i], COPIED);
+                SystemLog(sourceFiles[i], COPIED);
             }
         }
 
@@ -122,13 +122,13 @@ bool match(struct configStruct * configurations)
     {
         if (!name_exists_in_list(sourceFiles, sourceCount, targetFiles[i]))
         {
-            char *dstPath = build_path(configurations->targetDir, targetFiles[i]);
+            char *dstPath = BuildPath(configurations->targetDir, targetFiles[i]);
             if (!dstPath)
                 continue;
 
-            if (remove_path(dstPath))
+            if (RemovePath(dstPath))
             {
-                systemLog(targetFiles[i], DELETED);
+                SystemLog(targetFiles[i], DELETED);
             }
 
             free(dstPath);

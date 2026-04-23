@@ -9,24 +9,12 @@
 #include <sys/types.h>
 #include <string.h>
 #include <utime.h>
-
-char *build_path(const char *dir, const char *name)
-{
-	size_t len = strlen(dir) + strlen(name) + 2;
-	char *path = malloc(len);
-	if (!path)
-		return NULL;
-
-	snprintf(path, len, "%s/%s", dir, name);
-	return path;
-}
-
-bool is_dir(const char *path) 					//  I
+bool IsDir(const char *path) 					//  I
 {												//  I
 	struct stat st;								//  [------]
 	return (stat(path, &st) == 0) && S_ISDIR(st.st_mode);//I
 }														 //I
-int countFiles(const char * path)						// I
+int CountFiles(const char * path)						// I
 {													 //    I
 	int count = 0;									 // FOR THIS
 	struct dirent * entry;							 //    I
@@ -41,7 +29,7 @@ int countFiles(const char * path)						// I
 	return count;
 }
 
-bool copy_file(const char *srcPath, const char *dstPath)
+bool CopyFile(const char *srcPath, const char *dstPath)
 {
 	int srcFd = open(srcPath, O_RDONLY);
 	if (srcFd < 0)
@@ -92,13 +80,23 @@ bool copy_file(const char *srcPath, const char *dstPath)
 	close(dstFd);
 	return true;
 }
+char *BuildPath(const char *dir, const char *name)
+{
+	size_t len = strlen(dir) + strlen(name) + 2;
+	char *path = malloc(len);
+	if (!path)
+		return NULL;
 
-bool remove_path(const char *path)
+	snprintf(path, len, "%s/%s", dir, name);
+	return path;
+}
+
+bool RemovePath(const char *path)
 {
 	return unlink(path) == 0;
 }
 
-int daemonize_process() {
+int DaemonizeProcess() {
 	pid_t pid;
 	int fd;
 

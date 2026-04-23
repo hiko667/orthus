@@ -9,21 +9,22 @@
 
 int main(int argc, char * argv[])
 {
+	//ustawienie konfiguracji programu
 	struct configStruct configurations = {0};
 	configurations.awakeningFrequency = 5;
-	if(!readArguments(&configurations, argc, argv)) return 1;
+	if(!ReadArguments(&configurations, argc, argv)) return 1; //zczytanie argumentów programu
 
 	printf("%s\n%s\n", configurations.sourceDir, configurations.targetDir);
 	printf("Configuration completed, demonizing...\n");
-	if (daemonize_process() != 0) {
+	if (DaemonizeProcess() != 0) {
 		return -1;
 	}
 
 	while (1) {
-		match(&configurations);
-		systemLog("Daemon goes to sleep.", ASLEEP);
+		Match(&configurations);
+		SystemLog("Daemon goes to sleep.", ASLEEP);
 		sleep(configurations.awakeningFrequency * 60);
-		systemLog("Daemon wakes up.", AWOKE);
+		SystemLog("Daemon wakes up.", AWOKE);
 	}
 
     return 0;
