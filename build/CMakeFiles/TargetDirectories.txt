@@ -1,0 +1,3 @@
+/home/marchewa/SO/orthus/build/CMakeFiles/Orthus.dir
+/home/marchewa/SO/orthus/build/CMakeFiles/edit_cache.dir
+/home/marchewa/SO/orthus/build/CMakeFiles/rebuild_cache.dir

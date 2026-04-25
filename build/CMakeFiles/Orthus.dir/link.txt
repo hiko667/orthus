@@ -1,0 +1,1 @@
+/usr/bin/cc -g CMakeFiles/Orthus.dir/src/main.c.o CMakeFiles/Orthus.dir/src/utils.c.o CMakeFiles/Orthus.dir/src/configuration.c.o CMakeFiles/Orthus.dir/src/matcher.c.o CMakeFiles/Orthus.dir/src/logs.c.o -o Orthus 
