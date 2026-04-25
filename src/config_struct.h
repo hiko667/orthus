@@ -7,7 +7,7 @@ struct configStruct
     char targetDir[128];
     int awakeningFrequency; 
     bool recursive;
-    int minSizeToBeBig;
+    long long minSizeToBeBig;
 };
 
 enum options

@@ -108,7 +108,7 @@ bool Match(struct configStruct * configurations)
 
         if (needCopy)
         {
-            if (CopyFile(srcPath, dstPath))
+            if (CopyFile(srcPath, dstPath, configurations->minSizeToBeBig))
             {
                 SystemLog(sourceFiles[i], COPIED);
             }

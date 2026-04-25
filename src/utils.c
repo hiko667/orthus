@@ -1,6 +1,6 @@
 #define _DEFAULT_SOURCE // need this cause i use arch btw
 #include "utils.h"								//  I
-#include <stdio.h>        						//  I
+#include <stdio.h>								//  I
 #include <dirent.h>								//  I
 #include <stdlib.h>
 #include <unistd.h>
@@ -9,27 +9,29 @@
 #include <sys/types.h>
 #include <string.h>
 #include <utime.h>
+#include <sys/mman.h>
+#include <syslog.h>
 bool IsDir(const char *path) 					//  I
 {												//  I
 	struct stat st;								//  [------]
 	return (stat(path, &st) == 0) && S_ISDIR(st.st_mode);//I
 }														 //I
 int CountFiles(const char * path)						// I
-{													 //    I
+{													 //	I
 	int count = 0;									 // FOR THIS
-	struct dirent * entry;							 //    I
-	DIR * dir = opendir(path);						 //    I	
+	struct dirent * entry;							 //	I
+	DIR * dir = opendir(path);						 //	I	
 	if(dir == NULL) return -1;						 //   \ /
-	while ((entry = readdir(dir)) != NULL)           //    V
+	while ((entry = readdir(dir)) != NULL)		   //	V
 	{
-        if (entry->d_name[0] == '.' || entry->d_type != DT_REG) continue;
-        count++;
-    }
+		if (entry->d_name[0] == '.' || entry->d_type != DT_REG) continue;
+		count++;
+	}
 	closedir(dir);
 	return count;
 }
 
-bool CopyFile(const char *srcPath, const char *dstPath)
+bool CopyFile(const char *srcPath, const char *dstPath, long long minSizeToBeBig)
 {
 	int srcFd = open(srcPath, O_RDONLY);
 	if (srcFd < 0)
@@ -42,39 +44,74 @@ bool CopyFile(const char *srcPath, const char *dstPath)
 		return false;
 	}
 
-	char buffer[8192];
-	ssize_t bytesRead;
-	while ((bytesRead = read(srcFd, buffer, sizeof(buffer))) > 0)
-	{
-		ssize_t written = 0;
-		while (written < bytesRead)
-		{
-			ssize_t w = write(dstFd, buffer + written, bytesRead - written);
-			if (w < 0)
-			{
-				close(srcFd);
-				close(dstFd);
-				return false;
-			}
-			written += w;
-		}
-	}
-
-	if (bytesRead < 0)
-	{
-		close(srcFd);
-		close(dstFd);
-		return false;
-	}
-
 	struct stat st;
-	if (stat(srcPath, &st) == 0)
-	{
-		struct utimbuf times;
-		times.actime = st.st_atime;
-		times.modtime = st.st_mtime;
-		utime(dstPath, &times);
+	if (fstat(srcFd, &st) != 0)
+	{ 
+		close(srcFd); 
+		return false; 
 	}
+
+	// check if the source file classifies as big
+	bool isFileBig = (st.st_size >= minSizeToBeBig);
+
+	if (isFileBig && st.st_size > 0)
+	{
+		void *srcMap = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, srcFd, 0);
+
+		if (srcMap == MAP_FAILED)
+		{
+			close(srcFd);
+			close(dstFd);
+			return false; 
+		}
+
+		if (write(dstFd, srcMap, st.st_size) != st.st_size)
+		{
+			munmap(srcMap, st.st_size);
+			close(srcFd);
+			close(dstFd);
+			return false;
+		}
+
+		munmap(srcMap, st.st_size);
+
+		syslog(LOG_INFO, "Skopiowano za pomocą mmap.");
+	}
+	else
+	{
+		char buffer[8192];
+		ssize_t bytesRead;
+		while ((bytesRead = read(srcFd, buffer, sizeof(buffer))) > 0)
+		{
+			ssize_t written = 0;
+			while (written < bytesRead)
+			{
+				ssize_t w = write(dstFd, buffer + written, bytesRead - written);
+				if (w < 0)
+				{
+					close(srcFd);
+					close(dstFd);
+					return false;
+				}
+				written += w;
+			}
+		}
+
+		if (bytesRead < 0)
+		{
+			close(srcFd);
+			close(dstFd);
+			return false;
+		}
+
+		syslog(LOG_INFO, "Skopiowano za pomocą read/write: %s", srcPath);
+	}
+
+	// set the target file's modification date
+	struct utimbuf times;
+	times.actime = st.st_atime;
+	times.modtime = st.st_mtime;
+	utime(dstPath, &times);
 
 	close(srcFd);
 	close(dstFd);
