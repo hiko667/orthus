@@ -10,7 +10,6 @@
 #include <string.h>
 #include <utime.h>
 #include <sys/mman.h>
-#include <syslog.h>
 bool IsDir(const char *path) 					//  I
 {												//  I
 	struct stat st;								//  [------]
@@ -74,8 +73,6 @@ bool CopyFile(const char *srcPath, const char *dstPath, long long minSizeToBeBig
 		}
 
 		munmap(srcMap, st.st_size);
-
-		syslog(LOG_INFO, "Skopiowano za pomocą mmap.");
 	}
 	else
 	{
@@ -103,8 +100,6 @@ bool CopyFile(const char *srcPath, const char *dstPath, long long minSizeToBeBig
 			close(dstFd);
 			return false;
 		}
-
-		syslog(LOG_INFO, "Skopiowano za pomocą read/write: %s", srcPath);
 	}
 
 	// set the target file's modification date
