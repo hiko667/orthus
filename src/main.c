@@ -12,6 +12,7 @@ int main(int argc, char * argv[])
 	//ustawienie konfiguracji programu
 	struct configStruct configurations = {0};
 	configurations.awakeningFrequency = 5;
+	configurations.minSizeToBeBig = 20 * 1024 * 1024; //20 MiB
 	if(!ReadArguments(&configurations, argc, argv)) return 1; //zczytanie argumentów programu
 
 	printf("%s\n%s\n", configurations.sourceDir, configurations.targetDir);

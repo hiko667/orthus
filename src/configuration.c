@@ -31,9 +31,9 @@ void GiveHelp()
 	printf("-h -- help\n");
 	printf("-s -- set up source directory\n");
 	printf("-t -- set up target directory\n");
-	printf("-f -- set up frequency\n");
+	printf("-f -- set up frequency in minutes\n");
 	printf("-r -- use recursion\n");
-	printf("-m to set byte limit on big files\n");
+	printf("-m -- set byte limit on big files\n");
 }
 bool ReadArguments(struct configStruct * configurations, int argc, char * argv[])
 {
