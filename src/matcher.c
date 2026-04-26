@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include "logs.h"
 
-static int name_exists_in_list(char **list, int count, const char *name)
+static int NameExistsInList(char **list, int count, const char *name)
 {
     for (int i = 0; i < count; i++)
     {
@@ -18,7 +18,7 @@ static int name_exists_in_list(char **list, int count, const char *name)
     return 0;
 }
 
-char ** getFileList(const char *path, int *outCount)
+char ** GetFileList(const char *path, int *outCount)
 {
     int countedFiles = CountFiles(path);
     DIR * dir = opendir(path);
@@ -45,7 +45,7 @@ char ** getFileList(const char *path, int *outCount)
     return files;
 }
 
-static void freeFiles(char **files, int count)
+static void FreeFiles(char **files, int count)
 {
     if (!files)
         return;
@@ -61,13 +61,13 @@ bool Match(struct configStruct * configurations)
     int sourceCount = 0;
     int targetCount = 0;
 
-    char **sourceFiles = getFileList(configurations->sourceDir, &sourceCount);
-    char **targetFiles = getFileList(configurations->targetDir, &targetCount);
+    char **sourceFiles = GetFileList(configurations->sourceDir, &sourceCount);
+    char **targetFiles = GetFileList(configurations->targetDir, &targetCount);
 
     if (sourceCount < 0 || targetCount < 0)
     {
-        freeFiles(sourceFiles, sourceCount);
-        freeFiles(targetFiles, targetCount);
+        FreeFiles(sourceFiles, sourceCount);
+        FreeFiles(targetFiles, targetCount);
         return false;
     }
 
@@ -120,7 +120,7 @@ bool Match(struct configStruct * configurations)
 
     for (int i = 0; i < targetCount; i++)
     {
-        if (!name_exists_in_list(sourceFiles, sourceCount, targetFiles[i]))
+        if (!NameExistsInList(sourceFiles, sourceCount, targetFiles[i]))
         {
             char *dstPath = BuildPath(configurations->targetDir, targetFiles[i]);
             if (!dstPath)
@@ -135,8 +135,8 @@ bool Match(struct configStruct * configurations)
         }
     }
 
-    freeFiles(sourceFiles, sourceCount);
-    freeFiles(targetFiles, targetCount);
+    FreeFiles(sourceFiles, sourceCount);
+    FreeFiles(targetFiles, targetCount);
     return true;
 }
 
