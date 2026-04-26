@@ -18,24 +18,27 @@ static int NameExistsInList(char **list, int count, const char *name)
     return 0;
 }
 
-char ** GetFileList(const char *path, int *outCount)
+char **GetFileList(const char *path, int *outCount)
 {
     int countedFiles = CountFiles(path);
-    DIR * dir = opendir(path);
-    if(!dir || countedFiles == -1) return NULL;
-    if(countedFiles == 0) {
+    DIR *dir = opendir(path);
+    if (!dir || countedFiles == -1)
+        return NULL;
+    if (countedFiles == 0)
+    {
         closedir(dir);
         *outCount = 0;
         return NULL;
     }
-    char ** files = malloc(sizeof(char*) * countedFiles);
-    struct dirent * entry;
-    int count=0;
-    while((entry = readdir(dir)) != NULL)
+    char **files = malloc(sizeof(char *) * countedFiles);
+    struct dirent *entry;
+    int count = 0;
+    while ((entry = readdir(dir)) != NULL)
     {
-        if(entry->d_type == DT_REG)
+        if (entry->d_type == DT_REG)
         {
-            if(entry->d_name[0] == '.') continue;
+            if (entry->d_name[0] == '.')
+                continue;
             files[count] = strdup(entry->d_name);
             count++;
         }
@@ -56,7 +59,7 @@ static void FreeFiles(char **files, int count)
     free(files);
 }
 
-bool Match(struct configStruct * configurations)
+bool Match(struct configStruct *configurations)
 {
     int sourceCount = 0;
     int targetCount = 0;
@@ -140,10 +143,70 @@ bool Match(struct configStruct * configurations)
     return true;
 }
 
-bool RecursiveMatch(struct configStruct * configurations){
+bool RecursiveMatch(struct configStruct *configurations)
+{
+    DIR *dir = opendir(configurations->sourceDir); //otwarcie katalogu
+    if (!dir)
+    {
+        SystemLog("Cannot open source directory", ASLEEP);
+        return false;
+    }
 
-    //sprawdza jakie są folder i przepuszcza ich ścieżke znowu przez RecursiveMatch w pętli for
-    //jeśli już nie ma folderów to przez zwykły Match
-    // no i będzie musaiło tworzyć te foldery co nie 
+    // wykonanie dopasowania na zwykłych plikach
+    if (!Match(configurations))
+    {
+        closedir(dir);
+        return false;
+    }
+
+    // obsługa podkatalogów
+    struct dirent *entry;
+    rewinddir(dir); // przewiń katalog od nowa
+
+    while ((entry = readdir(dir)) != NULL) //przechodzi po katalogach i pomija pliki
+    {
+        if (entry->d_name[0] == '.')
+            continue;
+        if (entry->d_type != DT_DIR)
+            continue;
+
+        // Zbuduj ścieżki dla podkatalogu
+        char *srcSubDir = BuildPath(configurations->sourceDir, entry->d_name);
+        char *dstSubDir = BuildPath(configurations->targetDir, entry->d_name);
+
+        if (!srcSubDir || !dstSubDir)
+        {
+            free(srcSubDir);
+            free(dstSubDir);
+            continue;
+        }
+
+        // tworzy katalog docelowy jeśli nie istnieje
+        struct stat st;
+        if (stat(dstSubDir, &st) != 0)
+        {
+            if (mkdir(dstSubDir, 0755) != 0)
+            {
+                SystemLog(entry->d_name, DELETED); 
+                free(srcSubDir);
+                free(dstSubDir);
+                continue;
+            }
+        }
+
+        // Rekurencyjne wywołanie dla podkatalogu
+        struct configStruct subConfig = *configurations; // kopia
+        strcpy(subConfig.sourceDir, srcSubDir);
+        strcpy(subConfig.targetDir, dstSubDir);
+
+        RecursiveMatch(&subConfig);
+
+        free(srcSubDir);
+        free(dstSubDir);
+    }
+
+    // Usuń katalogi z docelowego które nie istnieją w źródle
+    // i trzeba sprawdzać czy metadane są inne żaby za każdym razem nie kopiowac tego samego jeśli już jest
+    closedir(dir);
     return true;
 }

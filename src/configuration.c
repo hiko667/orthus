@@ -32,7 +32,7 @@ void GiveHelp()
 	printf("-s -- set up source directory\n");
 	printf("-t -- set up target directory\n");
 	printf("-f -- set up frequency in minutes\n");
-	printf("-r -- use recursion\n");
+	printf("-R -- use recursion\n");
 	printf("-m -- set byte limit on big files\n");
 }
 bool ReadArguments(struct configStruct * configurations, int argc, char * argv[])
@@ -61,7 +61,7 @@ bool ReadArguments(struct configStruct * configurations, int argc, char * argv[]
 				i += 2;
 				break;
 			case 'h' : GiveHelp(); return false;
-			case 'r' :
+			case 'R' :
 				if(strlen(argv[i]) > 2) return false;
 				configurations->recursive = true; i ++; break;
 			case 'm':
