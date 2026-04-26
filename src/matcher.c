@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "utils.h"
+#include <utime.h>
 #include <string.h>
 #include <sys/stat.h>
 #include "logs.h"
@@ -145,32 +146,51 @@ bool Match(struct configStruct *configurations)
 
 bool RecursiveMatch(struct configStruct *configurations)
 {
-    DIR *dir = opendir(configurations->sourceDir); //otwarcie katalogu
+    DIR *dir = opendir(configurations->sourceDir); //otiwra katalog
     if (!dir)
     {
         SystemLog("Cannot open source directory", ASLEEP);
         return false;
     }
 
-    // wykonanie dopasowania na zwykłych plikach
+    // Porównaj czasy modyfikacji KATALOGÓW (źródłowego i docelowego)
+    struct stat srcDirStat, dstDirStat;
+
+    if (stat(configurations->sourceDir, &srcDirStat) != 0) //próba pobrania danych o źródle
+    {
+        closedir(dir);
+        return false;
+    }
+
+    //  katalog docelowy istnieje i ma ten sam czas co źródłowy
+    if (stat(configurations->targetDir, &dstDirStat) == 0)
+    {
+        if (srcDirStat.st_mtime <= dstDirStat.st_mtime)
+        {
+            // Katalog nie był modyfikowany od ostatniej synchronizacji
+            closedir(dir);
+            return true;
+        }
+    }
+
+    // Wykonaj Match na plikach
     if (!Match(configurations))
     {
         closedir(dir);
         return false;
     }
 
-    // obsługa podkatalogów
+    // Obsługa podkatalogów
     struct dirent *entry;
-    rewinddir(dir); // przewiń katalog od nowa
+    rewinddir(dir);
 
-    while ((entry = readdir(dir)) != NULL) //przechodzi po katalogach i pomija pliki
+    while ((entry = readdir(dir)) != NULL) //nie jest to katalog ukryty lub plik
     {
         if (entry->d_name[0] == '.')
             continue;
         if (entry->d_type != DT_DIR)
             continue;
 
-        // Zbuduj ścieżki dla podkatalogu
         char *srcSubDir = BuildPath(configurations->sourceDir, entry->d_name);
         char *dstSubDir = BuildPath(configurations->targetDir, entry->d_name);
 
@@ -181,21 +201,24 @@ bool RecursiveMatch(struct configStruct *configurations)
             continue;
         }
 
-        // tworzy katalog docelowy jeśli nie istnieje
+        // Tworzy katalog docelowy jeśli nie istnieje
         struct stat st;
         if (stat(dstSubDir, &st) != 0)
         {
-            if (mkdir(dstSubDir, 0755) != 0)
+            //tworzy dolder z takimi uprawnieniami 777 
+            //jeśli jest to możliwe lub takimi na jakie zezwoli linux,
+            //możecie wykminić jak nadać takie same uprawnienia jak folder źródłowy
+            if (mkdir(dstSubDir, 0777) != 0) 
             {
-                SystemLog(entry->d_name, DELETED); 
+                SystemLog(entry->d_name, DELETED);
                 free(srcSubDir);
                 free(dstSubDir);
                 continue;
             }
         }
 
-        // Rekurencyjne wywołanie dla podkatalogu
-        struct configStruct subConfig = *configurations; // kopia
+        // Rekurencyjne wywołanie 
+        struct configStruct subConfig = *configurations;
         strcpy(subConfig.sourceDir, srcSubDir);
         strcpy(subConfig.targetDir, dstSubDir);
 
@@ -205,8 +228,15 @@ bool RecursiveMatch(struct configStruct *configurations)
         free(dstSubDir);
     }
 
-    // Usuń katalogi z docelowego które nie istnieją w źródle
-    // i trzeba sprawdzać czy metadane są inne żaby za każdym razem nie kopiowac tego samego jeśli już jest
+    //tu dopisać funkcje co będzie usuwać pliki co są w folderze docelowym ale nie ma ich w źródłowm
+    //CleanUpDirectories(configurations);
+
+    // ustaiwenei czasu na źródłowy
+    struct utimbuf times;
+    times.actime = srcDirStat.st_atime;
+    times.modtime = srcDirStat.st_mtime;
+    utime(configurations->targetDir, &times);
+
     closedir(dir);
     return true;
 }
