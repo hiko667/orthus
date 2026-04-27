@@ -62,6 +62,7 @@ static void FreeFiles(char **files, int count)
 
 bool Match(struct configStruct *configurations)
 {
+    SystemLog("Entering matching session", ACTION);
     int sourceCount = 0;
     int targetCount = 0;
 
@@ -150,6 +151,7 @@ bool RecursiveMatch(struct configStruct *configurations)
     if (!dir)
     {
         SystemLog("Cannot open source directory", ASLEEP);
+        SystemLog(configurations->sourceDir, ASLEEP);
         return false;
     }
 

@@ -1,7 +1,7 @@
-#define _DEFAULT_SOURCE // need this cause i use arch btw
-#include "utils.h"								//  I
-#include <stdio.h>								//  I
-#include <dirent.h>								//  I
+#define _DEFAULT_SOURCE
+#include "utils.h"							
+#include <stdio.h>								
+#include <dirent.h>							
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -10,18 +10,20 @@
 #include <string.h>
 #include <utime.h>
 #include <sys/mman.h>
-bool IsDir(const char *path) 					//  I
-{												//  I
-	struct stat st;								//  [------]
-	return (stat(path, &st) == 0) && S_ISDIR(st.st_mode);//I
-}														 //I
-int CountFiles(const char * path)						// I
-{													 //	I
-	int count = 0;									 // FOR THIS
-	struct dirent * entry;							 //	I
-	DIR * dir = opendir(path);						 //	I	
-	if(dir == NULL) return -1;						 //   \ /
-	while ((entry = readdir(dir)) != NULL)		   //	V
+
+bool IsDir(const char *path) 			
+{							
+	struct stat st;						
+	return (stat(path, &st) == 0) && S_ISDIR(st.st_mode);
+}				
+										
+int CountFiles(const char * path)				
+{												
+	int count = 0;							
+	struct dirent * entry;			
+	DIR * dir = opendir(path);			
+	if(dir == NULL) return -1;				
+	while ((entry = readdir(dir)) != NULL)		
 	{
 		if (entry->d_name[0] == '.' || entry->d_type != DT_REG) continue;
 		count++;

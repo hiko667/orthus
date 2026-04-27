@@ -11,6 +11,7 @@ bool SetSource(struct configStruct * configurations, const char * path)
 		printf("Invalid source directory!\n");
 		return false;
 	}
+	configurations->sourceDir = malloc(strlen(path) + 1);
 	strcpy(configurations->sourceDir, path);
 	return true;
 }
@@ -21,6 +22,7 @@ bool SetTarget(struct configStruct * configurations, const char * path)
 		printf("Invalid target directory!\n");
 		return false;
 	}
+	configurations->targetDir = malloc(strlen(path) + 1);
 	strcpy(configurations->targetDir, path);
 	return true;
 }
@@ -37,6 +39,7 @@ void GiveHelp()
 }
 bool ReadArguments(struct configStruct * configurations, int argc, char * argv[])
 {
+	configurations->recursive = false;
 	int i = 1;
 	while (i < argc)
 	{
