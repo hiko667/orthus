@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include "config_struct.h"
 
-bool match(struct configStruct * configurations);
+bool Match(struct configStruct * configurations);
+bool RecursiveMatch(struct configStruct * configurations);
 
 #endif

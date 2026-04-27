@@ -1,6 +1,6 @@
 #define _DEFAULT_SOURCE // need this cause i use arch btw
 #include "utils.h"								//  I
-#include <stdio.h>        						//  I
+#include <stdio.h>								//  I
 #include <dirent.h>								//  I
 #include <stdlib.h>
 #include <unistd.h>
@@ -9,39 +9,28 @@
 #include <sys/types.h>
 #include <string.h>
 #include <utime.h>
-
-char *build_path(const char *dir, const char *name)
-{
-	size_t len = strlen(dir) + strlen(name) + 2;
-	char *path = malloc(len);
-	if (!path)
-		return NULL;
-
-	snprintf(path, len, "%s/%s", dir, name);
-	return path;
-}
-
-bool is_dir(const char *path) 					//  I
+#include <sys/mman.h>
+bool IsDir(const char *path) 					//  I
 {												//  I
 	struct stat st;								//  [------]
 	return (stat(path, &st) == 0) && S_ISDIR(st.st_mode);//I
 }														 //I
-int countFiles(const char * path)						// I
-{													 //    I
+int CountFiles(const char * path)						// I
+{													 //	I
 	int count = 0;									 // FOR THIS
-	struct dirent * entry;							 //    I
-	DIR * dir = opendir(path);						 //    I	
+	struct dirent * entry;							 //	I
+	DIR * dir = opendir(path);						 //	I	
 	if(dir == NULL) return -1;						 //   \ /
-	while ((entry = readdir(dir)) != NULL)           //    V
+	while ((entry = readdir(dir)) != NULL)		   //	V
 	{
-        if (entry->d_name[0] == '.' || entry->d_type != DT_REG) continue;
-        count++;
-    }
+		if (entry->d_name[0] == '.' || entry->d_type != DT_REG) continue;
+		count++;
+	}
 	closedir(dir);
 	return count;
 }
 
-bool copy_file(const char *srcPath, const char *dstPath)
+bool CopyFile(const char *srcPath, const char *dstPath, long long minSizeToBeBig)
 {
 	int srcFd = open(srcPath, O_RDONLY);
 	if (srcFd < 0)
@@ -54,51 +43,92 @@ bool copy_file(const char *srcPath, const char *dstPath)
 		return false;
 	}
 
-	char buffer[8192];
-	ssize_t bytesRead;
-	while ((bytesRead = read(srcFd, buffer, sizeof(buffer))) > 0)
+	struct stat st;
+	if (fstat(srcFd, &st) != 0)
+	{ 
+		close(srcFd); 
+		return false; 
+	}
+
+	// check if the source file classifies as big
+	bool isFileBig = (st.st_size >= minSizeToBeBig);
+
+	if (isFileBig && st.st_size > 0)
 	{
-		ssize_t written = 0;
-		while (written < bytesRead)
+		void *srcMap = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, srcFd, 0);
+
+		if (srcMap == MAP_FAILED)
 		{
-			ssize_t w = write(dstFd, buffer + written, bytesRead - written);
-			if (w < 0)
+			close(srcFd);
+			close(dstFd);
+			return false; 
+		}
+
+		if (write(dstFd, srcMap, st.st_size) != st.st_size)
+		{
+			munmap(srcMap, st.st_size);
+			close(srcFd);
+			close(dstFd);
+			return false;
+		}
+
+		munmap(srcMap, st.st_size);
+	}
+	else
+	{
+		char buffer[8192];
+		ssize_t bytesRead;
+		while ((bytesRead = read(srcFd, buffer, sizeof(buffer))) > 0)
+		{
+			ssize_t written = 0;
+			while (written < bytesRead)
 			{
-				close(srcFd);
-				close(dstFd);
-				return false;
+				ssize_t w = write(dstFd, buffer + written, bytesRead - written);
+				if (w < 0)
+				{
+					close(srcFd);
+					close(dstFd);
+					return false;
+				}
+				written += w;
 			}
-			written += w;
+		}
+
+		if (bytesRead < 0)
+		{
+			close(srcFd);
+			close(dstFd);
+			return false;
 		}
 	}
 
-	if (bytesRead < 0)
-	{
-		close(srcFd);
-		close(dstFd);
-		return false;
-	}
-
-	struct stat st;
-	if (stat(srcPath, &st) == 0)
-	{
-		struct utimbuf times;
-		times.actime = st.st_atime;
-		times.modtime = st.st_mtime;
-		utime(dstPath, &times);
-	}
+	// set the target file's modification date
+	struct utimbuf times;
+	times.actime = st.st_atime;
+	times.modtime = st.st_mtime;
+	utime(dstPath, &times);
 
 	close(srcFd);
 	close(dstFd);
 	return true;
 }
+char *BuildPath(const char *dir, const char *name)
+{
+	size_t len = strlen(dir) + strlen(name) + 2;
+	char *path = malloc(len);
+	if (!path)
+		return NULL;
 
-bool remove_path(const char *path)
+	snprintf(path, len, "%s/%s", dir, name);
+	return path;
+}
+
+bool RemovePath(const char *path)
 {
 	return unlink(path) == 0;
 }
 
-int daemonize_process() {
+int DaemonizeProcess() {
 	pid_t pid;
 	int fd;
 

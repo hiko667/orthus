@@ -8,7 +8,7 @@ struct configStruct
     char * targetDir;
     int awakeningFrequency; 
     bool recursive;
-    int minSizeToBeBig;
+    long long minSizeToBeBig;
 };
 
 #endif

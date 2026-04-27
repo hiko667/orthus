@@ -3,42 +3,52 @@
 #include <syslog.h>
 #include <string.h>
 
-void removeNewline(char *s) {
+void RemoveNewLine(char *s)
+{
     s[strcspn(s, "\n")] = '\0';
 }
-void addLogType(char * messgage, enum logType type)
+void AddLogType(char *messgage, enum logType type)
 {
     switch (type)
     {
-    case ASLEEP:  strcat(messgage, "FALLING ASLEEP:"); break;
-    case AWOKE: strcat(messgage, "AWOKE FROM SLEEP:"); break;
-    case COPIED: strcat(messgage, "COPIED FILE:"); break;
-    case DELETED: strcat(messgage, "DELETED FILE:"); break;
-    default: break;
+    case ASLEEP:
+        strcat(messgage, "FALLING ASLEEP:");
+        break;
+    case AWOKE:
+        strcat(messgage, "AWOKE FROM SLEEP:");
+        break;
+    case COPIED:
+        strcat(messgage, "COPIED FILE:");
+        break;
+    case DELETED:
+        strcat(messgage, "DELETED FILE:");
+        break;
+    default:
+        break;
     }
 }
-void addTime(char * message)
+void AddTime(char *message)
 {
     time_t currentTime;
     time(&currentTime);
-    char * timeString = ctime(&currentTime);
-    removeNewline(timeString);
+    char *timeString = ctime(&currentTime);
+    RemoveNewLine(timeString);
     strcat(message, timeString);
-    strcat(message,":");
+    strcat(message, ":");
 }
-void completeMessage(char * message, char * additionalInformation, enum logType type)
+void CompleteMessage(char *message, char *additionalInformation, enum logType type)
 {
     message[0] = '\0';
-    addLogType(message, type);
-    addTime(message);
+    AddLogType(message, type);
+    AddTime(message);
     strcat(message, additionalInformation);
 }
 
-void systemLog(char * additionalInformation, enum logType type)
+void SystemLog(char *additionalInformation, enum logType type)
 {
     openlog("Orthus", LOG_PID, LOG_DAEMON);
     char message[1024];
-    completeMessage(message, additionalInformation, type);
-    syslog(LOG_INFO, message);
+    CompleteMessage(message, additionalInformation, type);
+    syslog(LOG_INFO, "%s", message);
     closelog();
 }

@@ -4,11 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "utils.h"
+#include <utime.h>
 #include <string.h>
 #include <sys/stat.h>
 #include "logs.h"
 
-static int name_exists_in_list(char **list, int count, const char *name)
+static int NameExistsInList(char **list, int count, const char *name)
 {
     for (int i = 0; i < count; i++)
     {
@@ -18,25 +19,28 @@ static int name_exists_in_list(char **list, int count, const char *name)
     return 0;
 }
 
-char ** getFileList(const char *path, int *outCount)
+char **GetFileList(const char *path, int *outCount)
 {
-    int countedFiles = countFiles(path);
-    * counted = countedFiles;
-    DIR * dir = opendir(path);
-    if(!dir || countedFiles == -1) return NULL;
-    struct fileStruct ** files = malloc(sizeof(struct fileStruct *) * countedFiles);
-    for(int i = 0; i<countedFiles; i++) files[i] = malloc(sizeof(struct fileStruct));
-    struct dirent * entry;
-    int count=0;
-    while((entry = readdir(dir)) != NULL)
+    int countedFiles = CountFiles(path);
+    DIR *dir = opendir(path);
+    if (!dir || countedFiles == -1)
+        return NULL;
+    if (countedFiles == 0)
     {
-        if(entry->d_type == DT_REG)
+        closedir(dir);
+        *outCount = 0;
+        return NULL;
+    }
+    char **files = malloc(sizeof(char *) * countedFiles);
+    struct dirent *entry;
+    int count = 0;
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if (entry->d_type == DT_REG)
         {
-            char fullPath[1024];
-            snprintf(fullPath, sizeof(fullPath), "%s/%s", path, entry->d_name);
-            files[count]->fileName = strdup(entry->d_name);
-            stat(entry->d_name, &st);
-            files[count]->lastModified = st.st_mtim;
+            if (entry->d_name[0] == '.')
+                continue;
+            files[count] = strdup(entry->d_name);
             count++;
         }
     }
@@ -45,7 +49,7 @@ char ** getFileList(const char *path, int *outCount)
     return files;
 }
 
-static void freeFiles(char **files, int count)
+static void FreeFiles(char **files, int count)
 {
     if (!files)
         return;
@@ -56,25 +60,25 @@ static void freeFiles(char **files, int count)
     free(files);
 }
 
-bool match(struct configStruct * configurations)
+bool Match(struct configStruct *configurations)
 {
     int sourceCount = 0;
     int targetCount = 0;
 
-    char **sourceFiles = getFileList(configurations->sourceDir, &sourceCount);
-    char **targetFiles = getFileList(configurations->targetDir, &targetCount);
+    char **sourceFiles = GetFileList(configurations->sourceDir, &sourceCount);
+    char **targetFiles = GetFileList(configurations->targetDir, &targetCount);
 
-    if (!sourceFiles || !targetFiles || sourceCount < 0 || targetCount < 0)
+    if (sourceCount < 0 || targetCount < 0)
     {
-        freeFiles(sourceFiles, sourceCount);
-        freeFiles(targetFiles, targetCount);
+        FreeFiles(sourceFiles, sourceCount);
+        FreeFiles(targetFiles, targetCount);
         return false;
     }
 
     for (int i = 0; i < sourceCount; i++)
     {
-        char *srcPath = build_path(configurations->sourceDir, sourceFiles[i]);
-        char *dstPath = build_path(configurations->targetDir, sourceFiles[i]);
+        char *srcPath = BuildPath(configurations->sourceDir, sourceFiles[i]);
+        char *dstPath = BuildPath(configurations->targetDir, sourceFiles[i]);
 
         if (!srcPath || !dstPath)
         {
@@ -108,9 +112,9 @@ bool match(struct configStruct * configurations)
 
         if (needCopy)
         {
-            if (copy_file(srcPath, dstPath))
+            if (CopyFile(srcPath, dstPath, configurations->minSizeToBeBig))
             {
-                systemLog(sourceFiles[i], COPIED);
+                SystemLog(sourceFiles[i], COPIED);
             }
         }
 
@@ -120,22 +124,119 @@ bool match(struct configStruct * configurations)
 
     for (int i = 0; i < targetCount; i++)
     {
-        if (!name_exists_in_list(sourceFiles, sourceCount, targetFiles[i]))
+        if (!NameExistsInList(sourceFiles, sourceCount, targetFiles[i]))
         {
-            char *dstPath = build_path(configurations->targetDir, targetFiles[i]);
+            char *dstPath = BuildPath(configurations->targetDir, targetFiles[i]);
             if (!dstPath)
                 continue;
 
-            if (remove_path(dstPath))
+            if (RemovePath(dstPath))
             {
-                systemLog(targetFiles[i], DELETED);
+                SystemLog(targetFiles[i], DELETED);
             }
 
             free(dstPath);
         }
     }
 
-    freeFiles(sourceFiles, sourceCount);
-    freeFiles(targetFiles, targetCount);
+    FreeFiles(sourceFiles, sourceCount);
+    FreeFiles(targetFiles, targetCount);
+    return true;
+}
+
+bool RecursiveMatch(struct configStruct *configurations)
+{
+    DIR *dir = opendir(configurations->sourceDir); //otiwra katalog
+    if (!dir)
+    {
+        SystemLog("Cannot open source directory", ASLEEP);
+        return false;
+    }
+
+    // Porównaj czasy modyfikacji KATALOGÓW (źródłowego i docelowego)
+    struct stat srcDirStat, dstDirStat;
+
+    if (stat(configurations->sourceDir, &srcDirStat) != 0) //próba pobrania danych o źródle
+    {
+        closedir(dir);
+        return false;
+    }
+
+    //  katalog docelowy istnieje i ma ten sam czas co źródłowy
+    if (stat(configurations->targetDir, &dstDirStat) == 0)
+    {
+        if (srcDirStat.st_mtime <= dstDirStat.st_mtime)
+        {
+            // Katalog nie był modyfikowany od ostatniej synchronizacji
+            closedir(dir);
+            return true;
+        }
+    }
+
+    // Wykonaj Match na plikach
+    if (!Match(configurations))
+    {
+        closedir(dir);
+        return false;
+    }
+
+    // Obsługa podkatalogów
+    struct dirent *entry;
+    rewinddir(dir);
+
+    while ((entry = readdir(dir)) != NULL) //nie jest to katalog ukryty lub plik
+    {
+        if (entry->d_name[0] == '.')
+            continue;
+        if (entry->d_type != DT_DIR)
+            continue;
+
+        char *srcSubDir = BuildPath(configurations->sourceDir, entry->d_name);
+        char *dstSubDir = BuildPath(configurations->targetDir, entry->d_name);
+
+        if (!srcSubDir || !dstSubDir)
+        {
+            free(srcSubDir);
+            free(dstSubDir);
+            continue;
+        }
+
+        // Tworzy katalog docelowy jeśli nie istnieje
+        struct stat st;
+        if (stat(dstSubDir, &st) != 0)
+        {
+            //tworzy dolder z takimi uprawnieniami 777 
+            //jeśli jest to możliwe lub takimi na jakie zezwoli linux,
+            //możecie wykminić jak nadać takie same uprawnienia jak folder źródłowy
+            if (mkdir(dstSubDir, 0777) != 0) 
+            {
+                SystemLog(entry->d_name, DELETED);
+                free(srcSubDir);
+                free(dstSubDir);
+                continue;
+            }
+        }
+
+        // Rekurencyjne wywołanie 
+        struct configStruct subConfig = *configurations;
+        strcpy(subConfig.sourceDir, srcSubDir);
+        strcpy(subConfig.targetDir, dstSubDir);
+
+        RecursiveMatch(&subConfig);
+
+        free(srcSubDir);
+        free(dstSubDir);
+    }
+
+    //tu dopisać funkcje co będzie usuwać pliki co są w folderze docelowym ale nie ma ich w źródłowm
+    //CleanUpDirectories(configurations);
+
+    // ustaiwenei czasu na źródłowy
+    struct utimbuf times;
+    times.actime = srcDirStat.st_atime;
+    times.modtime = srcDirStat.st_mtime;
+    utime(configurations->targetDir, &times);
+
+    closedir(dir);
     return true;
 }
