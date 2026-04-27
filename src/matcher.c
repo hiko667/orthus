@@ -21,7 +21,9 @@ static int NameExistsInList(char **list, int count, const char *name)
 
 char **GetFileList(const char *path, int *outCount)
 {
+    SystemLog(path, ACTION);
     int countedFiles = CountFiles(path);
+    SystemLog("Zuzia1", ACTION);
     DIR *dir = opendir(path);
     if (!dir || countedFiles == -1)
         return NULL;
@@ -65,17 +67,18 @@ bool Match(struct configStruct *configurations)
     SystemLog("Daemon awoke. Begining to match", AWOKE);
     int sourceCount = 0;
     int targetCount = 0;
-
     char **sourceFiles = GetFileList(configurations->sourceDir, &sourceCount);
     char **targetFiles = GetFileList(configurations->targetDir, &targetCount);
-
+    SystemLog("Began to look for files to copy", ACTION); 
     if (sourceCount < 0 || targetCount < 0)
     {
         FreeFiles(sourceFiles, sourceCount);
         FreeFiles(targetFiles, targetCount);
         return false;
     }
-
+    char message [128];
+    sprintf(message, "Found %d src %d trg", sourceCount, targetCount);
+    SystemLog(message, ACTION);
     for (int i = 0; i < sourceCount; i++)
     {
         char *srcPath = BuildPath(configurations->sourceDir, sourceFiles[i]);
@@ -113,6 +116,7 @@ bool Match(struct configStruct *configurations)
 
         if (needCopy)
         {
+            SystemLog("Found file that needs copy", ACTION);
             if (CopyFile(srcPath, dstPath, configurations->minSizeToBeBig))
             {
                 SystemLog(sourceFiles[i], COPIED);
@@ -122,7 +126,7 @@ bool Match(struct configStruct *configurations)
         free(srcPath);
         free(dstPath);
     }
-
+    SystemLog("Began to look for files to delete", ACTION); 
     for (int i = 0; i < targetCount; i++)
     {
         if (!NameExistsInList(sourceFiles, sourceCount, targetFiles[i]))
@@ -142,6 +146,8 @@ bool Match(struct configStruct *configurations)
 
     FreeFiles(sourceFiles, sourceCount);
     FreeFiles(targetFiles, targetCount);
+    SystemLog("Ending iteration", ACTION); 
+
     return true;
 }
 

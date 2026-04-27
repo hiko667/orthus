@@ -1,5 +1,6 @@
 #define _DEFAULT_SOURCE
-#include "utils.h"							
+#include "utils.h"		
+#include "logs.h"					
 #include <stdio.h>								
 #include <dirent.h>							
 #include <stdlib.h>
@@ -11,6 +12,17 @@
 #include <utime.h>
 #include <sys/mman.h>
 
+char *BuildPath(const char *dir, const char *name)
+{
+	size_t len = strlen(dir) + strlen(name) + 2;
+	char *path = malloc(len);
+	if (!path)
+		return NULL;
+
+	snprintf(path, len, "%s/%s", dir, name);
+	return path;
+}
+
 bool IsDir(const char *path) 			
 {							
 	struct stat st;						
@@ -18,12 +30,12 @@ bool IsDir(const char *path)
 }				
 										
 int CountFiles(const char * path)				
-{												
+{	
 	int count = 0;							
 	struct dirent * entry;			
-	DIR * dir = opendir(path);			
+	DIR * dir = opendir(path);
 	if(dir == NULL) return -1;				
-	while ((entry = readdir(dir)) != NULL)		
+	while((entry = readdir(dir)) != NULL)
 	{
 		if (entry->d_name[0] == '.' || entry->d_type != DT_REG) continue;
 		count++;
@@ -114,16 +126,7 @@ bool CopyFile(const char *srcPath, const char *dstPath, long long minSizeToBeBig
 	close(dstFd);
 	return true;
 }
-char *BuildPath(const char *dir, const char *name)
-{
-	size_t len = strlen(dir) + strlen(name) + 2;
-	char *path = malloc(len);
-	if (!path)
-		return NULL;
 
-	snprintf(path, len, "%s/%s", dir, name);
-	return path;
-}
 
 bool RemovePath(const char *path)
 {

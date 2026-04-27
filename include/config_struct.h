@@ -4,6 +4,7 @@
 
 struct configStruct
 {
+    char * globalDir;
     char * sourceDir;
     char * targetDir;
     int awakeningFrequency; 

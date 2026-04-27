@@ -11,8 +11,17 @@ bool SetSource(struct configStruct * configurations, const char * path)
 		printf("Invalid source directory!\n");
 		return false;
 	}
-	configurations->sourceDir = malloc(strlen(path) + 1);
-	strcpy(configurations->sourceDir, path);
+	if(path[0] == '.'){
+		size_t sourceDirSize = strlen(path) + strlen(configurations->globalDir) + 1;
+		configurations->sourceDir = malloc(sourceDirSize);
+		snprintf(configurations->sourceDir, sourceDirSize, "%s%s", configurations->globalDir, path+1);
+	}
+	else{
+		configurations->sourceDir = malloc(strlen(path) + 1);
+		strcpy(configurations->sourceDir, path);
+	}
+	
+	
 	return true;
 }
 bool SetTarget(struct configStruct * configurations, const char * path)
@@ -22,8 +31,16 @@ bool SetTarget(struct configStruct * configurations, const char * path)
 		printf("Invalid target directory!\n");
 		return false;
 	}
-	configurations->targetDir = malloc(strlen(path) + 1);
-	strcpy(configurations->targetDir, path);
+	if(path[0] == '.'){
+		size_t targetDirSize = strlen(path) + strlen(configurations->globalDir) + 1;
+		configurations->targetDir = malloc(targetDirSize);
+		snprintf(configurations->targetDir, targetDirSize, "%s%s", configurations->globalDir, path+1);
+	}
+	else{
+		configurations->targetDir = malloc(strlen(path) + 1);
+		strcpy(configurations->targetDir, path);
+	}
+	
 	return true;
 }
 void GiveHelp()

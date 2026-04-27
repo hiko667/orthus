@@ -11,6 +11,7 @@ int main(int argc, char * argv[])
 {
 	//ustawienie konfiguracji programu
 	struct configStruct configurations = {0};
+	configurations.globalDir = getcwd(NULL, 0);
 	configurations.awakeningFrequency = 5;
 	configurations.minSizeToBeBig = 20 * 1024 * 1024; //20 MiB
 	if(!ReadArguments(&configurations, argc, argv)) return 1; //zczytanie argumentów programuS
@@ -23,20 +24,16 @@ int main(int argc, char * argv[])
 
 	while (1)
 	{
-		if (!configurations.recursive)
+		if (configurations.recursive)
 		{
-			SystemLog("ALA", ACTION);
 			RecursiveMatch(&configurations);
 		}
 		else
 		{
-			SystemLog("Alaa", ACTION);
 			Match(&configurations);
 		}
 		SystemLog("Daemon goes to sleep.", ASLEEP);
 		sleep(configurations.awakeningFrequency * 60);
-		SystemLog("Daemon wakes up.", AWOKE);
-	}
-
+		}
 	return 0;
 }

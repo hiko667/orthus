@@ -23,6 +23,8 @@ void AddLogType(char *messgage, enum logType type)
     case DELETED:
         strcat(messgage, "DELETED FILE:");
         break;
+    case ACTION:
+        strcat(messgage, "PERFORMED ACTION:");
     default:
         break;
     }
@@ -36,7 +38,7 @@ void AddTime(char *message)
     strcat(message, timeString);
     strcat(message, ":");
 }
-void CompleteMessage(char *message, char *additionalInformation, enum logType type)
+void CompleteMessage(char *message, const char *additionalInformation, enum logType type)
 {
     message[0] = '\0';
     AddLogType(message, type);
@@ -44,7 +46,7 @@ void CompleteMessage(char *message, char *additionalInformation, enum logType ty
     strcat(message, additionalInformation);
 }
 
-void SystemLog(char *additionalInformation, enum logType type)
+void SystemLog(const char *additionalInformation, enum logType type)
 {
     openlog("Orthus", LOG_PID, LOG_DAEMON);
     char message[1024];
