@@ -62,7 +62,7 @@ static void FreeFiles(char **files, int count)
 
 bool Match(struct configStruct *configurations)
 {
-    SystemLog("Entering matching session", ACTION);
+    SystemLog("Daemon awoke. Begining to match", AWOKE);
     int sourceCount = 0;
     int targetCount = 0;
 
@@ -147,6 +147,7 @@ bool Match(struct configStruct *configurations)
 
 bool RecursiveMatch(struct configStruct *configurations)
 {
+    SystemLog("Daemon awoke. Begining to match recursively", AWOKE);
     DIR *dir = opendir(configurations->sourceDir); //otiwra katalog
     if (!dir)
     {
