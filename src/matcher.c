@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include "logs.h"
 
-static int NameExistsInList(char **list, int count, const char *name)
+static bool NameExistsInList(char **list, int count, const char *name)
 {
     for (int i = 0; i < count; i++)
     {
@@ -19,12 +19,15 @@ static int NameExistsInList(char **list, int count, const char *name)
     return 0;
 }
 
+// Returns a list of file names and saves their number to the outCount variable
 char **GetFileList(const char *path, int *outCount)
 {
     int countedFiles = CountFiles(path);
     DIR *dir = opendir(path);
+    // Return NULL if the path doesn't lead to a directory or countedFiles returns an error
     if (!dir || countedFiles == -1)
         return NULL;
+    // Return Null if no files are in the directry
     if (countedFiles == 0)
     {
         closedir(dir);
@@ -34,12 +37,16 @@ char **GetFileList(const char *path, int *outCount)
     char **files = malloc(sizeof(char *) * countedFiles);
     struct dirent *entry;
     int count = 0;
+    // Loop through every file in the directory
     while ((entry = readdir(dir)) != NULL)
     {
+        // Regular file
         if (entry->d_type == DT_REG)
         {
+            // The file is hidden, skip over it
             if (entry->d_name[0] == '.')
                 continue;
+            // Add the file's name to the result
             files[count] = strdup(entry->d_name);
             count++;
         }
@@ -60,6 +67,7 @@ static void FreeFiles(char **files, int count)
     free(files);
 }
 
+// The function that matches target and source, copies the files if needed and returns true if nothing goes wrong
 bool Match(struct configStruct *configurations)
 {
     SystemLog("Daemon awoke. Begining to match", AWOKE);
@@ -67,7 +75,8 @@ bool Match(struct configStruct *configurations)
     int targetCount = 0;
     char **sourceFiles = GetFileList(configurations->sourceDir, &sourceCount);
     char **targetFiles = GetFileList(configurations->targetDir, &targetCount);
-    SystemLog("Began to look for files to copy", ACTION); 
+    SystemLog("Began to look for files to copy", ACTION);
+    // Directories are empty
     if (sourceCount < 0 || targetCount < 0)
     {
         FreeFiles(sourceFiles, sourceCount);
@@ -99,6 +108,7 @@ bool Match(struct configStruct *configurations)
             continue;
         }
 
+        // If the file isn't regular
         if (!S_ISREG(srcStat.st_mode))
         {
             free(srcPath);
@@ -106,25 +116,26 @@ bool Match(struct configStruct *configurations)
             continue;
         }
 
-        int needCopy = 0;
+        bool needCopy = false;
+        // Check if the source file doesn't exist in target
         if (lstat(dstPath, &dstStat) != 0)
-            needCopy = 1;
+            needCopy = true;
+        // Check if the date of modification in target file is lesser than source
         else if (srcStat.st_mtime > dstStat.st_mtime)
-            needCopy = 1;
+            needCopy = true;
 
         if (needCopy)
         {
             SystemLog("Found file that needs copy", ACTION);
             if (CopyFile(srcPath, dstPath, configurations->minSizeToBeBig))
-            {
                 SystemLog(sourceFiles[i], COPIED);
-            }
         }
 
         free(srcPath);
         free(dstPath);
     }
     SystemLog("Began to look for files to delete", ACTION); 
+    // Loop through files in target directory to check which don't exist in source anymore
     for (int i = 0; i < targetCount; i++)
     {
         if (!NameExistsInList(sourceFiles, sourceCount, targetFiles[i]))
@@ -134,9 +145,7 @@ bool Match(struct configStruct *configurations)
                 continue;
 
             if (RemovePath(dstPath))
-            {
                 SystemLog(targetFiles[i], DELETED);
-            }
 
             free(dstPath);
         }
@@ -149,10 +158,11 @@ bool Match(struct configStruct *configurations)
     return true;
 }
 
+// The function that recursively matches target and source using Match(), copies the files if needed and returns true if nothing goes wrong
 bool RecursiveMatch(struct configStruct *configurations)
 {
     SystemLog("Daemon awoke. Begining to match recursively", AWOKE);
-    DIR *dir = opendir(configurations->sourceDir); //otiwra katalog
+    DIR *dir = opendir(configurations->sourceDir);
     if (!dir)
     {
         SystemLog("Cannot open source directory", ASLEEP);
@@ -160,41 +170,40 @@ bool RecursiveMatch(struct configStruct *configurations)
         return false;
     }
 
-    // Porównaj czasy modyfikacji KATALOGÓW (źródłowego i docelowego)
     struct stat srcDirStat, dstDirStat;
-
-    if (stat(configurations->sourceDir, &srcDirStat) != 0) //próba pobrania danych o źródle
+    if (stat(configurations->sourceDir, &srcDirStat) != 0)
     {
         closedir(dir);
         return false;
     }
 
-    //  katalog docelowy istnieje i ma ten sam czas co źródłowy
+    // Check if the date of modification in target file is lesser than source
     if (stat(configurations->targetDir, &dstDirStat) == 0)
     {
         if (srcDirStat.st_mtime <= dstDirStat.st_mtime)
         {
-            // Katalog nie był modyfikowany od ostatniej synchronizacji
             closedir(dir);
             return true;
         }
     }
 
-    // Wykonaj Match na plikach
+    // Do Match() on the files
     if (!Match(configurations))
     {
         closedir(dir);
         return false;
     }
 
-    // Obsługa podkatalogów
+    // Work on subdirectories now
     struct dirent *entry;
     rewinddir(dir);
 
-    while ((entry = readdir(dir)) != NULL) //nie jest to katalog ukryty lub plik
+    while ((entry = readdir(dir)) != NULL)
     {
+        // If the file is hidden
         if (entry->d_name[0] == '.')
             continue;
+        // If it isn't a directory
         if (entry->d_type != DT_DIR)
             continue;
 
@@ -208,13 +217,11 @@ bool RecursiveMatch(struct configStruct *configurations)
             continue;
         }
 
-        // Tworzy katalog docelowy jeśli nie istnieje
+        // Create a target directory if it doesn't exist
         struct stat st;
         if (stat(dstSubDir, &st) != 0)
         {
-            //tworzy dolder z takimi uprawnieniami 777 
-            //jeśli jest to możliwe lub takimi na jakie zezwoli linux,
-            //możecie wykminić jak nadać takie same uprawnienia jak folder źródłowy
+            // Creates a directory with the permissions of 777
             if (mkdir(dstSubDir, 0777) != 0) 
             {
                 SystemLog(entry->d_name, DELETED);
@@ -224,7 +231,7 @@ bool RecursiveMatch(struct configStruct *configurations)
             }
         }
 
-        // Rekurencyjne wywołanie 
+        // Recursive call
         struct configStruct subConfig = *configurations;
         strcpy(subConfig.sourceDir, srcSubDir);
         strcpy(subConfig.targetDir, dstSubDir);
@@ -235,9 +242,11 @@ bool RecursiveMatch(struct configStruct *configurations)
         free(dstSubDir);
     }
 
-    //tu dopisać funkcje co będzie usuwać pliki co są w folderze docelowym ale nie ma ich w źródłowm
+    // DLA STASIA: tu dopisać funkcje co będzie usuwać pliki co są w folderze docelowym ale nie ma ich w źródłowm
+    //CleanUpDirectories(struct configStruct configurations) <– dodać taką fukncje
 
-    // ustaiwenei czasu na źródłowy
+    
+    // Set the target time to source
     struct utimbuf times;
     times.actime = srcDirStat.st_atime;
     times.modtime = srcDirStat.st_mtime;
@@ -245,9 +254,4 @@ bool RecursiveMatch(struct configStruct *configurations)
 
     closedir(dir);
     return true;
-}
-
-CleanUpDirectories(struct configStruct configurations)
-{
-        
 }

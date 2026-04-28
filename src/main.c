@@ -23,12 +23,12 @@ void CatchSignalToRunMatch(int sig)
 }
 int main(int argc, char * argv[])
 {
-	//ustawienie konfiguracji programu
 	con.globalDir = getcwd(NULL, 0);
 	con.awakeningFrequency = 5;
 	con.minSizeToBeBig = 20 * 1024 * 1024; //20 MiB
-	if(!ReadArguments(&con, argc, argv)) return 1; //zczytanie argumentów programuS
+	if(!ReadArguments(&con, argc, argv)) return 1; 
 	printf("%s\n%s\n", con.sourceDir, con.targetDir);
+  
 	printf("Configuration completed, demonizing...\n");
 	signal(SIGUSR1, CatchSignalToRunMatch);
 
@@ -39,14 +39,13 @@ int main(int argc, char * argv[])
 
 	while (1)
 	{
+    // Awake the deamon
 		if (con.recursive)
-		{
 			RecursiveMatch(&con);
-		}
 		else
-		{
 			Match(&con);
-		}
+  
+    // Go to sleep
 		SystemLog("Daemon goes to sleep.", ASLEEP);
 		sleep(con.awakeningFrequency * 60);
 		}
