@@ -243,7 +243,9 @@ bool RecursiveMatch(struct configStruct *configurations)
     }
 
     // DLA STASIA: tu dopisać funkcje co będzie usuwać pliki co są w folderze docelowym ale nie ma ich w źródłowm
+    //CleanUpDirectories(struct configStruct configurations) <– dodać taką fukncje
 
+    
     // Set the target time to source
     struct utimbuf times;
     times.actime = srcDirStat.st_atime;
@@ -252,9 +254,4 @@ bool RecursiveMatch(struct configStruct *configurations)
 
     closedir(dir);
     return true;
-}
-
-CleanUpDirectories(struct configStruct configurations)
-{
-        
 }
