@@ -6,19 +6,32 @@
 #include "configuration.h"
 #include "matcher.h"
 #include "logs.h"
+#include <signal.h>
 
+struct configStruct con = {0};
+
+void CatchSignalToRunMatch(int sig)
+{
+	if (con.recursive)
+	{
+		RecursiveMatch(&con);
+	}
+	else
+	{
+		Match(&con);
+	}
+}
 int main(int argc, char * argv[])
 {
-	// Init config with default values
-	struct configStruct configurations = {0};
-	configurations.globalDir = getcwd(NULL, 0);
-	configurations.awakeningFrequency = 5;
-	configurations.minSizeToBeBig = 20 * 1024 * 1024; //20 MiB
-
-	if(!ReadArguments(&configurations, argc, argv)) return 1;
-	
-	printf("%s\n%s\n", configurations.sourceDir, configurations.targetDir);
+	con.globalDir = getcwd(NULL, 0);
+	con.awakeningFrequency = 5;
+	con.minSizeToBeBig = 20 * 1024 * 1024; //20 MiB
+	if(!ReadArguments(&con, argc, argv)) return 1; 
+	printf("%s\n%s\n", con.sourceDir, con.targetDir);
+  
 	printf("Configuration completed, demonizing...\n");
+	signal(SIGUSR1, CatchSignalToRunMatch);
+
 
 	if (DaemonizeProcess() != 0) {
 		return -1;
@@ -26,16 +39,15 @@ int main(int argc, char * argv[])
 
 	while (1)
 	{
-		// Awake the deamon
-		if (configurations.recursive)
-			RecursiveMatch(&configurations);
+    // Awake the deamon
+		if (con.recursive)
+			RecursiveMatch(&con);
 		else
-			Match(&configurations);
-
-		// Go to sleep
+			Match(&con);
+  
+    // Go to sleep
 		SystemLog("Daemon goes to sleep.", ASLEEP);
-		sleep(configurations.awakeningFrequency * 60);
-	}
-
+		sleep(con.awakeningFrequency * 60);
+		}
 	return 0;
 }
