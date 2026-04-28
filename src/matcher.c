@@ -21,9 +21,7 @@ static int NameExistsInList(char **list, int count, const char *name)
 
 char **GetFileList(const char *path, int *outCount)
 {
-    SystemLog(path, ACTION);
     int countedFiles = CountFiles(path);
-    SystemLog("Zuzia1", ACTION);
     DIR *dir = opendir(path);
     if (!dir || countedFiles == -1)
         return NULL;
@@ -238,7 +236,6 @@ bool RecursiveMatch(struct configStruct *configurations)
     }
 
     //tu dopisać funkcje co będzie usuwać pliki co są w folderze docelowym ale nie ma ich w źródłowm
-    //CleanUpDirectories(configurations);
 
     // ustaiwenei czasu na źródłowy
     struct utimbuf times;
@@ -248,4 +245,9 @@ bool RecursiveMatch(struct configStruct *configurations)
 
     closedir(dir);
     return true;
+}
+
+CleanUpDirectories(struct configStruct configurations)
+{
+        
 }
