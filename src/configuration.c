@@ -4,6 +4,7 @@
 
 #define VERSION 1.0
 
+// Find the source's path, return true if it's valid and add to the configuration struct
 bool SetSource(struct configStruct * configurations, const char * path)
 {
 	if(!IsDir(path))
@@ -24,6 +25,7 @@ bool SetSource(struct configStruct * configurations, const char * path)
 	
 	return true;
 }
+// Find the target's path, return true if it's valid and add to the configuration struct
 bool SetTarget(struct configStruct * configurations, const char * path)
 {
 	if(!IsDir(path))
@@ -43,6 +45,7 @@ bool SetTarget(struct configStruct * configurations, const char * path)
 	
 	return true;
 }
+// The output of the -h flag
 void GiveHelp()
 {
 	printf("Orthus version %.1f\n", VERSION);
@@ -54,40 +57,67 @@ void GiveHelp()
 	printf("-R -- use recursion\n");
 	printf("-m -- set byte limit on big files\n");
 }
+// Read each argument and save to the configuration one by one, return false if anything goes wrong
 bool ReadArguments(struct configStruct * configurations, int argc, char * argv[])
 {
 	configurations->recursive = false;
 	int i = 1;
 	while (i < argc)
 	{
+		// Skip if an argument doesn't start with '-'
 		if (argv[i][0] != '-')
 		{
 			i++;
 			continue;
 		}
+
 		switch (argv[i][1])
 		{
+			// Set source
 			case 's' :
+				// check if the formatting and path are valid
 				if(i + 1 >= argc || strlen(argv[i]) > 2 || !SetSource(configurations, argv[i+1]))
 					return false;
-				i += 2; break;
+				i += 2;
+				break;
+			
+			// Set target
 			case 't' :
+				// check if the formatting and path are valid
 				if(i + 1 >= argc || strlen(argv[i]) > 2 || !SetTarget(configurations, argv[i+1]))
 					return false;
-				i += 2; break;
+				i += 2;
+				break;
+			
+			// Set frequency
 			case 'f':
-				if(i + 1 >= argc ||strlen(argv[i]) > 2 || atoi(argv[i+1]) < 0) return false;
+				// check if the formatting and path are valid
+				if(i + 1 >= argc ||strlen(argv[i]) > 2 || atoi(argv[i+1]) < 0)
+					return false;
 				configurations->awakeningFrequency = atoi(argv[i+1]);
 				i += 2;
 				break;
-			case 'h' : GiveHelp(); return false;
+			
+			// Get help
+			case 'h' :
+				GiveHelp();
+				return false;
+			
+			// Set recursive
 			case 'R' :
+				// check if the formatting is valid
 				if(strlen(argv[i]) > 2) return false;
-				configurations->recursive = true; i ++; break;
+				configurations->recursive = true;
+				i++;
+				break;
+			
+			// Byte limit of small files
 			case 'm':
+				// check if the formatting is valid
 				if(i + 1 >= argc || atoi( argv[i+1]) < 0 || strlen(argv[i]) >2) return false;
 				configurations->minSizeToBeBig = atoi(argv[i+1]);
-				i+=2; break;
+				i+=2;
+				break;
 
 			default:
 				i++;

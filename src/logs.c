@@ -7,6 +7,7 @@ void RemoveNewLine(char *s)
 {
     s[strcspn(s, "\n")] = '\0';
 }
+// Add the right description to the end of the message depending on the logType
 void AddLogType(char *messgage, enum logType type)
 {
     switch (type)
@@ -29,6 +30,7 @@ void AddLogType(char *messgage, enum logType type)
         break;
     }
 }
+// Add system date and a ':' to the end of the message
 void AddTime(char *message)
 {
     time_t currentTime;
@@ -38,6 +40,7 @@ void AddTime(char *message)
     strcat(message, timeString);
     strcat(message, ":");
 }
+// Finish writing a message by using AddLogType and AddTime
 void CompleteMessage(char *message, const char *additionalInformation, enum logType type)
 {
     message[0] = '\0';
@@ -45,7 +48,7 @@ void CompleteMessage(char *message, const char *additionalInformation, enum logT
     AddTime(message);
     strcat(message, additionalInformation);
 }
-
+// Add a log to the system using CompleteMessage
 void SystemLog(const char *additionalInformation, enum logType type)
 {
     openlog("Orthus", LOG_PID, LOG_DAEMON);
