@@ -29,3 +29,12 @@ To make the daemon copy directories present in the source directory as well (Rec
   Orthus -s ./a -t ./b -R
 ```
 
+To force synchronization from LINUX terminal run 
+```bash
+  kill -USR1 1234
+```
+while replacing '1234' with number of proces. You may find the number of proces by running
+```bash
+  journalctl -f
+```
+To end orthus kill it with bash 'kill' command
