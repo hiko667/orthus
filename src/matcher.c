@@ -200,20 +200,6 @@ bool RecursiveMatch(struct configStruct *configurations)
         return false;
     }
 
-    struct stat srcDirStat;
-    if (stat(configurations->sourceDir, &srcDirStat) != 0)
-    {
-        closedir(dir);
-        return false;
-    }
-
-    struct stat trgDirStat;
-    if (stat(configurations->targetDir, &trgDirStat) != 0)
-    {
-        closedir(dir);
-        return false;
-    }
-
     // Do Match() on the files inside current directory
     if (!Match(configurations))
     {
@@ -304,7 +290,12 @@ bool RecursiveMatch(struct configStruct *configurations)
         }
         closedir(targetDir);
     }
-
+    struct stat srcDirStat;
+    if (stat(configurations->sourceDir, &srcDirStat) != 0)
+    {
+        closedir(dir);
+        return false;
+    }
     // Set the target time to source
     struct utimbuf times;
     times.actime = srcDirStat.st_atime;

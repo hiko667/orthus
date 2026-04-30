@@ -11,7 +11,7 @@
 struct configStruct con = {0};
 
 void CatchSignalToRunMatch(int sig)
-{
+{   // after detecting signal synchronizes agin
 	SystemLog("Daemon awoke by SIGUSR1. Begining to match", AWOKE);
 	if (con.recursive)
 	{
@@ -29,21 +29,16 @@ int main(int argc, char * argv[])
 	con.minSizeToBeBig = 20 * 1024 * 1024; //20 MiB
 	if(!ReadArguments(&con, argc, argv)) return 1; 
 	printf("%s\n%s\n", con.sourceDir, con.targetDir);
-  
 	printf("Configuration completed, demonizing...\n");
 	signal(SIGUSR1, CatchSignalToRunMatch);
 
-
-	if (DaemonizeProcess() != 0) {
-		return -1;
-	}
+	if (DaemonizeProcess() != 0) return -1; 
 
 	while (1)
 	{
     // Awake the deamon
 		SystemLog("Daemon awoke. Begining to match", AWOKE);
-		if (con.recursive)
-			
+		if (con.recursive)		
 			RecursiveMatch(&con);
 		else
 			Match(&con);

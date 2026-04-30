@@ -44,14 +44,14 @@ int CountFiles(const char * path)
 	return count;
 }
 
-bool CopyFile(const char *srcPath, const char *dstPath, long long minSizeToBeBig)
+bool CopyFile(const char *srcPath, const char *trgPath, long long minSizeToBeBig)
 {
 	int srcFd = open(srcPath, O_RDONLY);
 	if (srcFd < 0)
 		return false;
 
-	int dstFd = open(dstPath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (dstFd < 0)
+	int trgFd = open(trgPath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (trgFd < 0)
 	{
 		close(srcFd);
 		return false;
@@ -74,15 +74,15 @@ bool CopyFile(const char *srcPath, const char *dstPath, long long minSizeToBeBig
 		if (srcMap == MAP_FAILED)
 		{
 			close(srcFd);
-			close(dstFd);
+			close(trgFd);
 			return false; 
 		}
 
-		if (write(dstFd, srcMap, st.st_size) != st.st_size)
+		if (write(trgFd, srcMap, st.st_size) != st.st_size)
 		{
 			munmap(srcMap, st.st_size);
 			close(srcFd);
-			close(dstFd);
+			close(trgFd);
 			return false;
 		}
 
@@ -98,11 +98,11 @@ bool CopyFile(const char *srcPath, const char *dstPath, long long minSizeToBeBig
 			ssize_t written = 0;
 			while (written < bytesRead)
 			{
-				ssize_t w = write(dstFd, buffer + written, bytesRead - written);
+				ssize_t w = write(trgFd, buffer + written, bytesRead - written);
 				if (w < 0)
 				{
 					close(srcFd);
-					close(dstFd);
+					close(trgFd);
 					return false;
 				}
 				written += w;
@@ -112,7 +112,7 @@ bool CopyFile(const char *srcPath, const char *dstPath, long long minSizeToBeBig
 		if (bytesRead < 0)
 		{
 			close(srcFd);
-			close(dstFd);
+			close(trgFd);
 			return false;
 		}
 	}
@@ -121,10 +121,10 @@ bool CopyFile(const char *srcPath, const char *dstPath, long long minSizeToBeBig
 	struct utimbuf times;
 	times.actime = st.st_atime;
 	times.modtime = st.st_mtime;
-	utime(dstPath, &times);
+	utime(trgPath, &times);
 
 	close(srcFd);
-	close(dstFd);
+	close(trgFd);
 	return true;
 }
 

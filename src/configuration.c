@@ -21,8 +21,6 @@ bool SetSource(struct configStruct * configurations, const char * path)
 		configurations->sourceDir = malloc(strlen(path) + 1);
 		strcpy(configurations->sourceDir, path);
 	}
-	
-	
 	return true;
 }
 // Find the target's path, return true if it's valid and add to the configuration struct
