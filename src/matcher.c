@@ -70,7 +70,6 @@ static void FreeFiles(char **files, int count)
 // The function that matches target and source, copies the files if needed and returns true if nothing goes wrong
 bool Match(struct configStruct *configurations)
 {
-    SystemLog("Daemon awoke. Begining to match", AWOKE);
     int sourceCount = 0;
     int targetCount = 0;
     char **sourceFiles = GetFileList(configurations->sourceDir, &sourceCount);
@@ -153,23 +152,27 @@ bool Match(struct configStruct *configurations)
 
     FreeFiles(sourceFiles, sourceCount);
     FreeFiles(targetFiles, targetCount);
-    SystemLog("Ending iteration", ACTION); 
-
+    sprintf(message, "Ending iteration for %d", configurations->sourceDir);
+    SystemLog(message, ACTION);
     return true;
 }
 
 // The function that recursively matches target and source using Match(), copies the files if needed and returns true if nothing goes wrong
 bool RecursiveMatch(struct configStruct *configurations)
 {
-    SystemLog("Daemon awoke. Begining to match recursively", AWOKE);
+    char message [128];
+    sprintf(message, "Begining to match recursively %d ",configurations->sourceDir);
+    SystemLog(message, ACTION);
     DIR *dir = opendir(configurations->sourceDir);
     if (!dir)
     {
-        SystemLog("Cannot open source directory", ASLEEP);
+        sprintf(message, "Cannot open source directory %d ",configurations->sourceDir);
+        SystemLog(message, ASLEEP);
         SystemLog(configurations->sourceDir, ASLEEP);
         return false;
     }
 
+    
     struct stat srcDirStat, dstDirStat;
     if (stat(configurations->sourceDir, &srcDirStat) != 0)
     {
@@ -187,7 +190,7 @@ bool RecursiveMatch(struct configStruct *configurations)
         }
     }
 
-    // Do Match() on the files
+    // Do Match() on the files inside current directory
     if (!Match(configurations))
     {
         closedir(dir);
@@ -195,12 +198,13 @@ bool RecursiveMatch(struct configStruct *configurations)
     }
 
     // Work on subdirectories now
+    SystemLog("Began to look for directories to copy", ACTION);
     struct dirent *entry;
     rewinddir(dir);
-
+    
     while ((entry = readdir(dir)) != NULL)
     {
-        // If the file is hidden
+        // If it is hidden
         if (entry->d_name[0] == '.')
             continue;
         // If it isn't a directory
@@ -229,6 +233,8 @@ bool RecursiveMatch(struct configStruct *configurations)
                 free(dstSubDir);
                 continue;
             }
+            sprintf(message, "Copied %d directory to target",srcSubDir);
+            SystemLog(message, COPIED); 
         }
 
         // Recursive call

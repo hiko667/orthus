@@ -12,6 +12,7 @@ struct configStruct con = {0};
 
 void CatchSignalToRunMatch(int sig)
 {
+	SystemLog("Daemon awoke. Begining to match", AWOKE);
 	if (con.recursive)
 	{
 		RecursiveMatch(&con);
@@ -40,11 +41,12 @@ int main(int argc, char * argv[])
 	while (1)
 	{
     // Awake the deamon
+		SystemLog("Daemon awoke. Begining to match", AWOKE);
 		if (con.recursive)
+			
 			RecursiveMatch(&con);
 		else
 			Match(&con);
-  
     // Go to sleep
 		SystemLog("Daemon goes to sleep.", ASLEEP);
 		sleep(con.awakeningFrequency * 60);

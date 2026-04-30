@@ -13,19 +13,19 @@ void AddLogType(char *messgage, enum logType type)
     switch (type)
     {
     case ASLEEP:
-        strcat(messgage, "FALLING ASLEEP:");
+        strcat(messgage, "FALLING ASLEEP: ");
         break;
     case AWOKE:
-        strcat(messgage, "AWOKE FROM SLEEP:");
+        strcat(messgage, "AWOKE FROM SLEEP: ");
         break;
     case COPIED:
-        strcat(messgage, "COPIED FILE:");
+        strcat(messgage, "COPIED: ");
         break;
     case DELETED:
-        strcat(messgage, "DELETED FILE:");
+        strcat(messgage, "DELETED: ");
         break;
     case ACTION:
-        strcat(messgage, "PERFORMED ACTION:");
+        strcat(messgage, "PERFORMED ACTION: ");
     default:
         break;
     }
@@ -38,7 +38,7 @@ void AddTime(char *message)
     char *timeString = ctime(&currentTime);
     RemoveNewLine(timeString);
     strcat(message, timeString);
-    strcat(message, ":");
+    strcat(message, ": ");
 }
 // Finish writing a message by using AddLogType and AddTime
 void CompleteMessage(char *message, const char *additionalInformation, enum logType type)
