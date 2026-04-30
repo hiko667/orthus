@@ -213,14 +213,6 @@ bool RecursiveMatch(struct configStruct *configurations)
         closedir(dir);
         return false;
     }
-    // checks if target direstory is allredy sychronised
-    if (srcDirStat.st_mtime <= trgDirStat.st_mtime)
-    {
-        sprintf(message, "Directory %s is up to date, skipping", configurations->sourceDir);
-        SystemLog(message, ACTION);
-        closedir(dir);
-        return true;
-    }
 
     // Do Match() on the files inside current directory
     if (!Match(configurations))
