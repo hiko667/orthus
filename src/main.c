@@ -12,7 +12,7 @@ struct configStruct con = {0};
 
 void CatchSignalToRunMatch(int sig)
 {
-	SystemLog("Daemon awoke. Begining to match", AWOKE);
+	SystemLog("Daemon awoke by SIGUSR1. Begining to match", AWOKE);
 	if (con.recursive)
 	{
 		RecursiveMatch(&con);
